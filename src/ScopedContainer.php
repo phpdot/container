@@ -27,10 +27,19 @@ final class ScopedContainer implements ContainerInterface
     /** @var array<string, Closure|null> Factories for scoped/transient */
     private array $factories = [];
 
+    private Container $phpdi;
+
     public function __construct(
-        private readonly Container $phpdi,
         private readonly ContextProviderInterface $contextProvider,
     ) {}
+
+    /**
+     * Set the underlying PHP-DI container. Called by ContainerBuilder after build.
+     */
+    public function setPhpDi(Container $phpdi): void
+    {
+        $this->phpdi = $phpdi;
+    }
 
     /**
      * @param class-string|null $implementation
@@ -72,6 +81,16 @@ final class ScopedContainer implements ContainerInterface
      */
     public function make(string $name, array $parameters = []): mixed
     {
+        // Scoped: return from context (same instance within scope)
+        if (isset($this->scopedIds[$name])) {
+            return $this->getScoped($name);
+        }
+
+        // Transient: always fresh via factory
+        if (isset($this->transientIds[$name])) {
+            return $this->resolve($name);
+        }
+
         return $this->phpdi->make($name, $parameters);
     }
 

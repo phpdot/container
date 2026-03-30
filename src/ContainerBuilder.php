@@ -210,15 +210,17 @@ final class ContainerBuilder
             $validator->validate($this->scopeMap);
         }
 
-        // Build PHP-DI container
-        $phpdiBuilder = new PHPDIBuilder();
+        // Create scoped container first (for delegate lookup)
+        $container = new ScopedContainer($contextProvider);
 
-        // Add each batch separately (preserves DI\decorate() ordering)
+        // Build PHP-DI with wrapContainer so deps resolve through ScopedContainer
+        $phpdiBuilder = new PHPDIBuilder();
+        $phpdiBuilder->wrapContainer($container);
+
         foreach ($phpdiDefBatches as $batch) {
             $phpdiBuilder->addDefinitions($batch);
         }
 
-        // Framework services
         $phpdiBuilder->addDefinitions([
             ContextProviderInterface::class => $contextProvider,
             ContextResetter::class => \DI\factory(static function () use ($contextProvider): ContextResetter {
@@ -238,10 +240,7 @@ final class ContainerBuilder
             $configurator($phpdiBuilder);
         }
 
-        $phpdi = $phpdiBuilder->build();
-
-        // Wrap with scoped container
-        $container = new ScopedContainer($phpdi, $contextProvider);
+        $container->setPhpDi($phpdiBuilder->build());
 
         // Register scoped entries
         foreach ($scopedEntries as $id => $definition) {
