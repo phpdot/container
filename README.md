@@ -184,7 +184,6 @@ $builder->withContextProvider(new CallbackContextProvider(
 
 ```bash
 composer require phpdot/container-swoole    # SwooleContextProvider
-composer require phpdot/container-fiber     # FiberContextProvider
 ```
 
 ## Registration Methods

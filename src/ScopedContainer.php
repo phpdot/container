@@ -12,11 +12,12 @@ namespace PHPdot\Container;
 
 use Closure;
 use DI\Container;
+use DI\FactoryInterface;
 use PHPdot\Container\Context\ContextProviderInterface;
 use Psr\Container\ContainerInterface;
 use RuntimeException;
 
-final class ScopedContainer implements ContainerInterface
+final class ScopedContainer implements ContainerInterface, FactoryInterface
 {
     /** @var array<string, true> */
     private array $scopedIds = [];
@@ -24,8 +25,11 @@ final class ScopedContainer implements ContainerInterface
     /** @var array<string, true> */
     private array $transientIds = [];
 
-    /** @var array<string, Closure|null> Factories for scoped/transient */
+    /** @var array<string, Closure|null> */
     private array $factories = [];
+
+    /** @var array<string, string|null> */
+    private array $implementations = [];
 
     private Container $phpdi;
 
@@ -42,20 +46,32 @@ final class ScopedContainer implements ContainerInterface
     }
 
     /**
+     * Register a scoped entry.
+     *
      * @param class-string|null $implementation
      */
     public function registerScoped(string $id, Closure|null $factory = null, string|null $implementation = null): void
     {
         $this->scopedIds[$id] = true;
         $this->factories[$id] = $factory;
+        $this->implementations[$id] = $implementation;
     }
 
-    public function registerTransient(string $id, Closure|null $factory = null): void
+    /**
+     * Register a transient entry.
+     *
+     * @param class-string|null $implementation
+     */
+    public function registerTransient(string $id, Closure|null $factory = null, string|null $implementation = null): void
     {
         $this->transientIds[$id] = true;
         $this->factories[$id] = $factory;
+        $this->implementations[$id] = $implementation;
     }
 
+    /**
+     * Get a service. Checks scoped/transient first, then PHP-DI.
+     */
     public function get(string $id): mixed
     {
         if (isset($this->scopedIds[$id])) {
@@ -69,6 +85,9 @@ final class ScopedContainer implements ContainerInterface
         return $this->phpdi->get($id);
     }
 
+    /**
+     * Check if a service exists.
+     */
     public function has(string $id): bool
     {
         return isset($this->scopedIds[$id])
@@ -77,16 +96,16 @@ final class ScopedContainer implements ContainerInterface
     }
 
     /**
+     * Create a fresh instance. Respects scoped/transient entries.
+     *
      * @param array<mixed> $parameters
      */
     public function make(string $name, array $parameters = []): mixed
     {
-        // Scoped: return from context (same instance within scope)
         if (isset($this->scopedIds[$name])) {
             return $this->getScoped($name);
         }
 
-        // Transient: always fresh via factory
         if (isset($this->transientIds[$name])) {
             return $this->resolve($name);
         }
@@ -95,6 +114,8 @@ final class ScopedContainer implements ContainerInterface
     }
 
     /**
+     * Call a callable with autowired parameters.
+     *
      * @param mixed $callable
      * @param array<mixed> $parameters
      */
@@ -112,6 +133,9 @@ final class ScopedContainer implements ContainerInterface
         return $this->phpdi;
     }
 
+    /**
+     * Get a scoped instance — cached within the current context.
+     */
     private function getScoped(string $id): object
     {
         $ctx = $this->contextProvider->getContext();
@@ -127,6 +151,9 @@ final class ScopedContainer implements ContainerInterface
         return $instance;
     }
 
+    /**
+     * Resolve a fresh instance using factory, implementation, or autowiring.
+     */
     private function resolve(string $id): object
     {
         $factory = $this->factories[$id] ?? null;
@@ -134,7 +161,8 @@ final class ScopedContainer implements ContainerInterface
         if ($factory !== null) {
             $instance = $factory($this);
         } else {
-            $instance = $this->phpdi->make($id);
+            $target = $this->implementations[$id] ?? $id;
+            $instance = $this->phpdi->make($target);
         }
 
         if (!is_object($instance)) {

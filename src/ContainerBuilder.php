@@ -13,12 +13,14 @@ namespace PHPdot\Container;
 use Closure;
 use DI\Container;
 use DI\ContainerBuilder as PHPDIBuilder;
+use DI\FactoryInterface;
 use PHPdot\Container\Context\ArrayContextProvider;
 use PHPdot\Container\Context\ContextProviderInterface;
 use PHPdot\Container\Definition\DefinitionCompiler;
 use PHPdot\Container\Definition\ScopedDefinition;
 use PHPdot\Container\Scanner\AttributeScanner;
 use PHPdot\Container\Validation\ScopeValidator;
+use Psr\Container\ContainerInterface;
 
 final class ContainerBuilder
 {
@@ -240,7 +242,11 @@ final class ContainerBuilder
             $configurator($phpdiBuilder);
         }
 
-        $container->setPhpDi($phpdiBuilder->build());
+        $phpdi = $phpdiBuilder->build();
+        $container->setPhpDi($phpdi);
+
+        $phpdi->set(ContainerInterface::class, $container);
+        $phpdi->set(FactoryInterface::class, $container);
 
         // Register scoped entries
         foreach ($scopedEntries as $id => $definition) {
@@ -249,7 +255,7 @@ final class ContainerBuilder
 
         // Register transient entries
         foreach ($transientEntries as $id => $definition) {
-            $container->registerTransient($id, $definition->factory);
+            $container->registerTransient($id, $definition->factory, $definition->implementation);
         }
 
         return $container;
