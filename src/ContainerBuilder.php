@@ -37,6 +37,9 @@ final class ContainerBuilder
     /** @var list<Closure(PHPDIBuilder<Container>): void> */
     private array $phpdiConfigurators = [];
 
+    /** @var array<string, array<string, string|Closure>> */
+    private array $contextualBindings = [];
+
     private string|null $compilationDir = null;
     private string|null $proxyDir = null;
 
@@ -88,6 +91,19 @@ final class ContainerBuilder
         }
 
         return new RegisteringDefinitionBuilder($this, $id, $impl, $factory);
+    }
+
+    /**
+     * @param class-string $consumer
+     */
+    public function when(string $consumer): ContextualBindingBuilder
+    {
+        return new ContextualBindingBuilder($this, $consumer);
+    }
+
+    public function addContextualBinding(string $consumer, string $abstract, string|Closure $concrete): void
+    {
+        $this->contextualBindings[$consumer][$abstract] = $concrete;
     }
 
     /**
@@ -193,6 +209,21 @@ final class ContainerBuilder
                 } elseif ($definition instanceof ScopedDefinition && $definition->scope === Scope::TRANSIENT) {
                     $transientEntries[$id] = $definition;
                 } elseif ($definition instanceof ScopedDefinition) {
+                    if (isset($this->contextualBindings[$id]) && $definition->factory !== null) {
+                        $bindings = $this->contextualBindings[$id];
+                        $original = $definition->factory;
+                        $wrapped = static function (ContainerInterface $c) use ($original, $bindings): mixed {
+                            /** @var ScopedContainer $scoped */
+                            $scoped = $c instanceof ScopedContainer ? $c : $c;
+                            return $original(new ContextualContainer($scoped, $bindings));
+                        };
+                        $definition = new ScopedDefinition(
+                            $definition->scope,
+                            $definition->implementation,
+                            $wrapped,
+                            $definition->onDestroy,
+                        );
+                    }
                     $compiled = $compiler->compile([$id => $definition], $this->defaultScope);
                     $phpdiDefs = array_replace($phpdiDefs, $compiled);
                 } else {
@@ -212,7 +243,7 @@ final class ContainerBuilder
         }
 
         // Create scoped container first (for delegate lookup)
-        $container = new ScopedContainer($contextProvider);
+        $container = new ScopedContainer($contextProvider, $this->contextualBindings);
 
         // Build PHP-DI with wrapContainer so deps resolve through ScopedContainer
         $phpdiBuilder = new PHPDIBuilder();

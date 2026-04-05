@@ -33,9 +33,15 @@ final class ScopedContainer implements ContainerInterface, FactoryInterface
 
     private Container $phpdi;
 
+    /**
+     * @param ContextProviderInterface $contextProvider
+     * @param array<string, array<string, string|Closure>> $contextualBindings
+     */
     public function __construct(
         private readonly ContextProviderInterface $contextProvider,
-    ) {}
+        private readonly array $contextualBindings = [],
+    ) {
+    }
 
     /**
      * Set the underlying PHP-DI container. Called by ContainerBuilder after build.
@@ -159,7 +165,10 @@ final class ScopedContainer implements ContainerInterface, FactoryInterface
         $factory = $this->factories[$id] ?? null;
 
         if ($factory !== null) {
-            $instance = $factory($this);
+            $container = isset($this->contextualBindings[$id])
+                ? new ContextualContainer($this, $this->contextualBindings[$id])
+                : $this;
+            $instance = $factory($container);
         } else {
             $target = $this->implementations[$id] ?? $id;
             $instance = $this->phpdi->make($target);
