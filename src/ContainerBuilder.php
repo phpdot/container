@@ -71,24 +71,23 @@ final class ContainerBuilder
     }
 
     /**
-     * Start a fluent definition.
+     * Start a fluent definition that auto-registers when a scope method is called.
      *
-     * @param class-string $id
-     * @param class-string|Closure|null $implementation
+     * @param class-string $id The service identifier (class or interface name)
+     * @param class-string|Closure|null $implementation Concrete class or factory
      */
-    public function add(string $id, string|Closure|null $implementation = null): DefinitionBuilder
+    public function add(string $id, string|Closure|null $implementation = null): RegisteringDefinitionBuilder
     {
-        $builder = new DefinitionBuilder($implementation);
+        $factory = null;
+        $impl = null;
 
-        // The DefinitionBuilder returns a ScopedDefinition when a scope method is called.
-        // We need to capture it. Use a deferred approach:
-        // The caller does: $this->add(Foo::class)->singleton()
-        // Which returns a ScopedDefinition. We need the caller to pass it back.
-        // Instead, store a reference and let the caller assign:
-        // $builder->add(Foo::class)->singleton() — but this doesn't register it.
+        if ($implementation instanceof Closure) {
+            $factory = $implementation;
+        } else {
+            $impl = $implementation;
+        }
 
-        // Better approach: return a registering builder
-        return new DefinitionBuilder($implementation);
+        return new RegisteringDefinitionBuilder($this, $id, $impl, $factory);
     }
 
     /**
