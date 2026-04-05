@@ -52,79 +52,15 @@ final class MultiDep
     }
 }
 
-final class NullLogger implements \Psr\Log\LoggerInterface
+final class NullLogger extends \Psr\Log\AbstractLogger
 {
-    public function emergency(string|\Stringable $message, array $context = []): void
-    {
-    }
-
-    public function alert(string|\Stringable $message, array $context = []): void
-    {
-    }
-
-    public function critical(string|\Stringable $message, array $context = []): void
-    {
-    }
-
-    public function error(string|\Stringable $message, array $context = []): void
-    {
-    }
-
-    public function warning(string|\Stringable $message, array $context = []): void
-    {
-    }
-
-    public function notice(string|\Stringable $message, array $context = []): void
-    {
-    }
-
-    public function info(string|\Stringable $message, array $context = []): void
-    {
-    }
-
-    public function debug(string|\Stringable $message, array $context = []): void
-    {
-    }
-
     public function log(mixed $level, string|\Stringable $message, array $context = []): void
     {
     }
 }
 
-final class CustomLogger implements \Psr\Log\LoggerInterface
+final class CustomLogger extends \Psr\Log\AbstractLogger
 {
-    public function emergency(string|\Stringable $message, array $context = []): void
-    {
-    }
-
-    public function alert(string|\Stringable $message, array $context = []): void
-    {
-    }
-
-    public function critical(string|\Stringable $message, array $context = []): void
-    {
-    }
-
-    public function error(string|\Stringable $message, array $context = []): void
-    {
-    }
-
-    public function warning(string|\Stringable $message, array $context = []): void
-    {
-    }
-
-    public function notice(string|\Stringable $message, array $context = []): void
-    {
-    }
-
-    public function info(string|\Stringable $message, array $context = []): void
-    {
-    }
-
-    public function debug(string|\Stringable $message, array $context = []): void
-    {
-    }
-
     public function log(mixed $level, string|\Stringable $message, array $context = []): void
     {
     }
@@ -378,5 +314,47 @@ final class ContextualBindingTest extends TestCase
         $translator = $container->get(Translator::class);
 
         self::assertInstanceOf(FileCache::class, $translator->cache);
+    }
+
+    #[Test]
+    public function scoped_binding_persists_across_context_switch(): void
+    {
+        $provider = new \PHPdot\Container\Testing\TestContextProvider();
+        $builder = new ContainerBuilder();
+        $builder->withContextProvider($provider);
+
+        $builder->addDefinitions([
+            CacheInterface::class => new ScopedDefinition(Scope::SINGLETON, FileCache::class),
+            RedisCache::class => new ScopedDefinition(Scope::SINGLETON, RedisCache::class),
+            Translator::class => new ScopedDefinition(Scope::SCOPED, factory: static function (ContainerInterface $c): Translator {
+                return new Translator($c->get(CacheInterface::class));
+            }),
+        ]);
+
+        $builder->when(Translator::class)
+            ->needs(CacheInterface::class)
+            ->provide(RedisCache::class);
+
+        $container = $builder->build();
+
+        $t1 = $container->get(Translator::class);
+        self::assertInstanceOf(RedisCache::class, $t1->cache);
+
+        $provider->newContext();
+        $t2 = $container->get(Translator::class);
+        self::assertInstanceOf(RedisCache::class, $t2->cache);
+
+        self::assertNotSame($t1, $t2);
+    }
+
+    #[Test]
+    public function provide_without_needs_throws(): void
+    {
+        $builder = new ContainerBuilder();
+
+        $this->expectException(\LogicException::class);
+
+        $builder->when(Translator::class)
+            ->provide(RedisCache::class);
     }
 }

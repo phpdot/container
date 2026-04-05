@@ -213,9 +213,9 @@ final class ContainerBuilder
                         $bindings = $this->contextualBindings[$id];
                         $original = $definition->factory;
                         $wrapped = static function (ContainerInterface $c) use ($original, $bindings): mixed {
-                            /** @var ScopedContainer $scoped */
-                            $scoped = $c instanceof ScopedContainer ? $c : $c;
-                            return $original(new ContextualContainer($scoped, $bindings));
+                            assert($c instanceof ScopedContainer);
+
+                            return $original(new ContextualContainer($c, $bindings));
                         };
                         $definition = new ScopedDefinition(
                             $definition->scope,

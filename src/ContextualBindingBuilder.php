@@ -32,6 +32,12 @@ final class ContextualBindingBuilder
      */
     public function provide(string|Closure $concrete): void
     {
+        if ($this->abstract === '') {
+            throw new \LogicException(
+                'Call needs() before provide()',
+            );
+        }
+
         $this->builder->addContextualBinding(
             $this->consumer,
             $this->abstract,

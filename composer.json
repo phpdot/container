@@ -12,6 +12,7 @@
         "phpunit/phpunit": "^11.0",
         "phpstan/phpstan": "^2.0",
         "phpstan/phpstan-strict-rules": "^2.0",
+        "psr/log": "^3.0",
         "friendsofphp/php-cs-fixer": "^3.94"
     },
     "autoload": {
