@@ -25,6 +25,9 @@ final class ScopedContainer implements ContainerInterface, FactoryInterface
     /** @var array<string, true> */
     private array $transientIds = [];
 
+    /** @var array<string, true> */
+    private array $phpdiIds = [];
+
     /** @var array<string, Closure|null> */
     private array $factories = [];
 
@@ -76,6 +79,14 @@ final class ScopedContainer implements ContainerInterface, FactoryInterface
     }
 
     /**
+     * Register an entry managed by PHP-DI (singletons, values, factories).
+     */
+    public function registerPhpDiId(string $id): void
+    {
+        $this->phpdiIds[$id] = true;
+    }
+
+    /**
      * Get a service. Checks scoped/transient first, then PHP-DI.
      */
     public function get(string $id): mixed
@@ -88,6 +99,14 @@ final class ScopedContainer implements ContainerInterface, FactoryInterface
             return $this->resolve($id);
         }
 
+        if (isset($this->phpdiIds[$id])) {
+            return $this->phpdi->get($id);
+        }
+
+        if (class_exists($id)) {
+            return $this->getScoped($id);
+        }
+
         return $this->phpdi->get($id);
     }
 
@@ -98,6 +117,7 @@ final class ScopedContainer implements ContainerInterface, FactoryInterface
     {
         return isset($this->scopedIds[$id])
             || isset($this->transientIds[$id])
+            || isset($this->phpdiIds[$id])
             || $this->phpdi->has($id);
     }
 

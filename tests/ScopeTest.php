@@ -286,6 +286,95 @@ final class ScopeTest extends TestCase
         $this->assertNotSame($a, $b);
     }
 
+    // ─── Default scoped for unregistered classes ───
+
+    public function testUnregisteredClassDefaultsToScoped(): void
+    {
+        $container = $this->build([]);
+
+        $a = $container->get(stdClass::class);
+        $b = $container->get(stdClass::class);
+        $this->assertSame($a, $b, 'Same instance within context');
+
+        $this->provider->newContext();
+        $c = $container->get(stdClass::class);
+        $this->assertNotSame($a, $c, 'Different instance across contexts');
+    }
+
+    public function testExplicitSingletonNotAffectedByDefaultScoped(): void
+    {
+        $container = $this->build([
+            stdClass::class => singleton(),
+        ]);
+
+        $a = $container->get(stdClass::class);
+        $this->provider->newContext();
+        $b = $container->get(stdClass::class);
+
+        $this->assertSame($a, $b, 'Explicit singleton survives context switch');
+    }
+
+    public function testDiValueNotAffectedByDefaultScoped(): void
+    {
+        $container = $this->build([
+            'config.name' => \DI\value('PHPdot'),
+        ]);
+
+        $this->assertSame('PHPdot', $container->get('config.name'));
+
+        $this->provider->newContext();
+        $this->assertSame('PHPdot', $container->get('config.name'));
+    }
+
+    public function testDiFactoryNotAffectedByDefaultScoped(): void
+    {
+        $counter = 0;
+        $container = $this->build([
+            'service' => \DI\factory(function () use (&$counter) {
+                $counter++;
+
+                return new stdClass();
+            }),
+        ]);
+
+        $a = $container->get('service');
+        $this->provider->newContext();
+        $b = $container->get('service');
+
+        $this->assertSame($a, $b, 'DI\\factory() remains singleton');
+        $this->assertSame(1, $counter);
+    }
+
+    public function testContextResetterStaysSingleton(): void
+    {
+        $container = $this->build([]);
+
+        $a = $container->get(\PHPdot\Container\ContextResetter::class);
+        $this->provider->newContext();
+        $b = $container->get(\PHPdot\Container\ContextResetter::class);
+
+        $this->assertSame($a, $b);
+    }
+
+    public function testUnregisteredClassWithDependencyDefaultsToScoped(): void
+    {
+        $container = $this->build([]);
+
+        /** @var UnregisteredWithDep $a */
+        $a = $container->get(UnregisteredWithDep::class);
+        $this->assertInstanceOf(UnregisteredDep::class, $a->dep);
+
+        /** @var UnregisteredWithDep $b */
+        $b = $container->get(UnregisteredWithDep::class);
+        $this->assertSame($a, $b, 'Same within context');
+
+        $this->provider->newContext();
+
+        /** @var UnregisteredWithDep $c */
+        $c = $container->get(UnregisteredWithDep::class);
+        $this->assertNotSame($a, $c, 'Different across contexts');
+    }
+
     // ─── Helper ───
 
     /**
@@ -300,4 +389,13 @@ final class ScopeTest extends TestCase
             ->addDefinitions($definitions)
             ->build();
     }
+}
+
+class UnregisteredDep {}
+
+class UnregisteredWithDep
+{
+    public function __construct(
+        public readonly UnregisteredDep $dep,
+    ) {}
 }

@@ -198,6 +198,8 @@ final class ContainerBuilder
         $phpdiDefBatches = [];
         $scopedEntries = [];
         $transientEntries = [];
+        /** @var list<string> */
+        $phpdiIds = [];
         $compiler = new DefinitionCompiler();
 
         foreach ($this->definitionBatches as $batch) {
@@ -209,6 +211,7 @@ final class ContainerBuilder
                 } elseif ($definition instanceof ScopedDefinition && $definition->scope === Scope::TRANSIENT) {
                     $transientEntries[$id] = $definition;
                 } elseif ($definition instanceof ScopedDefinition) {
+                    $phpdiIds[] = $id;
                     if (isset($this->contextualBindings[$id]) && $definition->factory !== null) {
                         $bindings = $this->contextualBindings[$id];
                         $original = $definition->factory;
@@ -227,6 +230,7 @@ final class ContainerBuilder
                     $compiled = $compiler->compile([$id => $definition], $this->defaultScope);
                     $phpdiDefs = array_replace($phpdiDefs, $compiled);
                 } else {
+                    $phpdiIds[] = $id;
                     $phpdiDefs[$id] = $definition;
                 }
             }
@@ -278,12 +282,19 @@ final class ContainerBuilder
         $phpdi->set(ContainerInterface::class, $container);
         $phpdi->set(FactoryInterface::class, $container);
 
-        // Register scoped entries
+        foreach ($phpdiIds as $id) {
+            $container->registerPhpDiId($id);
+        }
+
+        $container->registerPhpDiId(ContextProviderInterface::class);
+        $container->registerPhpDiId(ContextResetter::class);
+        $container->registerPhpDiId(ContainerInterface::class);
+        $container->registerPhpDiId(FactoryInterface::class);
+
         foreach ($scopedEntries as $id => $definition) {
             $container->registerScoped($id, $definition->factory, $definition->implementation);
         }
 
-        // Register transient entries
         foreach ($transientEntries as $id => $definition) {
             $container->registerTransient($id, $definition->factory, $definition->implementation);
         }
