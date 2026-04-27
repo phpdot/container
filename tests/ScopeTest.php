@@ -384,7 +384,6 @@ final class ScopeTest extends TestCase
     {
         return (new ContainerBuilder())
             ->withContextProvider($this->provider)
-            ->withDefaultScope(Scope::SCOPED)
             ->withScopeValidation(false)
             ->addDefinitions($definitions)
             ->build();

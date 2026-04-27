@@ -19,7 +19,6 @@ use PHPdot\Container\Attribute\Scoped;
 use PHPdot\Container\Attribute\Singleton;
 use PHPdot\Container\Attribute\Transient;
 use PHPdot\Container\Scope;
-use ReflectionClass;
 
 final class AttributeScanner
 {
@@ -60,23 +59,5 @@ final class AttributeScanner
         }
 
         return $results;
-    }
-
-    /**
-     * Get the scope from a class's attributes via reflection.
-     *
-     * @param class-string $className
-     */
-    public function getScopeFromAttributes(string $className): Scope|null
-    {
-        $reflection = new ReflectionClass($className);
-
-        foreach (self::SCOPE_MAP as $attributeClass => $scope) {
-            if ($reflection->getAttributes($attributeClass) !== []) {
-                return $scope;
-            }
-        }
-
-        return null;
     }
 }

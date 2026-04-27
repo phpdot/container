@@ -1,13 +1,15 @@
 <?php
 
 declare(strict_types=1);
+
 namespace PHPdot\Container\Tests;
 
-use PHPdot\Container\Attribute\Scoped;
-use PHPdot\Container\Attribute\Singleton;
-use PHPdot\Container\Attribute\Transient;
 use PHPdot\Container\Scanner\AttributeScanner;
 use PHPdot\Container\Scope;
+use PHPdot\Container\Tests\Fixtures\Attribute\ScopedFixture;
+use PHPdot\Container\Tests\Fixtures\Attribute\SingletonFixture;
+use PHPdot\Container\Tests\Fixtures\Attribute\TransientFixture;
+use PHPdot\Container\Tests\Fixtures\Attribute\UntaggedFixture;
 use PHPUnit\Framework\TestCase;
 
 final class AttributeTest extends TestCase
@@ -19,38 +21,19 @@ final class AttributeTest extends TestCase
         $this->scanner = new AttributeScanner();
     }
 
-    public function testDetectsSingletonAttribute(): void
+    public function testScansSingletonScopedAndTransientFromDirectory(): void
     {
-        $scope = $this->scanner->getScopeFromAttributes(SingletonClass::class);
-        $this->assertSame(Scope::SINGLETON, $scope);
+        $results = $this->scanner->scanDirectory(__DIR__ . '/Fixtures/Attribute');
+
+        $this->assertSame(Scope::SINGLETON, $results[SingletonFixture::class] ?? null);
+        $this->assertSame(Scope::SCOPED, $results[ScopedFixture::class] ?? null);
+        $this->assertSame(Scope::TRANSIENT, $results[TransientFixture::class] ?? null);
     }
 
-    public function testDetectsScopedAttribute(): void
+    public function testIgnoresClassesWithoutLifecycleAttributes(): void
     {
-        $scope = $this->scanner->getScopeFromAttributes(ScopedClass::class);
-        $this->assertSame(Scope::SCOPED, $scope);
-    }
+        $results = $this->scanner->scanDirectory(__DIR__ . '/Fixtures/Attribute');
 
-    public function testDetectsTransientAttribute(): void
-    {
-        $scope = $this->scanner->getScopeFromAttributes(TransientClass::class);
-        $this->assertSame(Scope::TRANSIENT, $scope);
-    }
-
-    public function testReturnsNullForNoAttribute(): void
-    {
-        $scope = $this->scanner->getScopeFromAttributes(NoAttributeClass::class);
-        $this->assertNull($scope);
+        $this->assertArrayNotHasKey(UntaggedFixture::class, $results);
     }
 }
-
-#[Singleton]
-class SingletonClass {}
-
-#[Scoped]
-class ScopedClass {}
-
-#[Transient]
-class TransientClass {}
-
-class NoAttributeClass {}

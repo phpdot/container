@@ -25,7 +25,6 @@ use Psr\Container\ContainerInterface;
 final class ContainerBuilder
 {
     private ContextProviderInterface|null $contextProvider = null;
-    private Scope $defaultScope = Scope::SCOPED;
     private bool $scopeValidation = true;
 
     /** @var list<array<string, mixed>> Accumulated definition batches */
@@ -49,16 +48,6 @@ final class ContainerBuilder
     public function withContextProvider(ContextProviderInterface $provider): self
     {
         $this->contextProvider = $provider;
-
-        return $this;
-    }
-
-    /**
-     * Set the default scope for classes without explicit scope.
-     */
-    public function withDefaultScope(Scope $scope): self
-    {
-        $this->defaultScope = $scope;
 
         return $this;
     }
@@ -227,8 +216,7 @@ final class ContainerBuilder
                             $definition->onDestroy,
                         );
                     }
-                    $compiled = $compiler->compile([$id => $definition], $this->defaultScope);
-                    $phpdiDefs = array_replace($phpdiDefs, $compiled);
+                    $phpdiDefs[$id] = $compiler->compileSingleton($id, $definition);
                 } else {
                     $phpdiIds[] = $id;
                     $phpdiDefs[$id] = $definition;

@@ -177,7 +177,6 @@ final class PhpDiCompatibilityTest extends TestCase
     {
         $builder = (new ContainerBuilder())
             ->withContextProvider($this->provider)
-            ->withDefaultScope(Scope::SCOPED)
             ->withScopeValidation(false);
 
         // Two separate addDefinitions calls — PHP-DI merges them
@@ -364,7 +363,6 @@ final class PhpDiCompatibilityTest extends TestCase
     {
         return (new ContainerBuilder())
             ->withContextProvider($this->provider)
-            ->withDefaultScope(Scope::SCOPED)
             ->withScopeValidation(false)
             ->addDefinitions($definitions)
             ->build();

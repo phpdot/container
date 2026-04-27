@@ -353,9 +353,6 @@ $container = (new ContainerBuilder())
     // Context provider (default: ArrayContextProvider for FPM)
     ->withContextProvider(new SwooleContextProvider())
 
-    // Default scope for classes without explicit scope
-    ->withDefaultScope(Scope::Scoped)
-
     // Definitions from files
     ->addDefinitions(require __DIR__ . '/config/services.php')
 
@@ -393,19 +390,11 @@ All PHP-DI features work unchanged:
 
 ## Default Scope
 
-The recommended default is `Scoped`:
+Unregistered classes default to **`Scoped`** — `ScopedContainer::get()` resolves any existing class via the active context if it has no explicit registration. There is no builder knob to change this; the default is hardcoded so the safe behavior (one instance per coroutine, no cross-coroutine state leak) is impossible to accidentally turn off.
 
-```php
-$builder->withDefaultScope(Scope::Scoped);
-```
+Opt into `Singleton` explicitly with `#[Singleton]` on the class, `->add(X::class)->singleton()` in code, or `singleton(...)` in a definition file. Same for `Transient`.
 
-Under FPM, Scoped behaves identically to Singleton (one process = one context). Zero performance penalty for the safe default. Developers opt into Singleton explicitly when they know a service is stateless.
-
-For gradual adoption of existing PHP-DI projects:
-
-```php
-$builder->withDefaultScope(Scope::Singleton); // matches PHP-DI behavior
-```
+Under FPM, Scoped behaves identically to Singleton (one process = one context). Zero performance penalty for the safe default.
 
 ## Requirements
 
