@@ -11,7 +11,7 @@ declare(strict_types=1);
 namespace PHPdot\Container\Definition;
 
 use DI;
-use PHPdot\Container\Context\ContextProviderInterface;
+use PHPdot\Contracts\Container\ContextProviderInterface;
 use PHPdot\Container\Scope;
 use Psr\Container\ContainerInterface;
 use RuntimeException;

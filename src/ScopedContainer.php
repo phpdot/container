@@ -13,7 +13,7 @@ namespace PHPdot\Container;
 use Closure;
 use DI\Container;
 use DI\FactoryInterface;
-use PHPdot\Container\Context\ContextProviderInterface;
+use PHPdot\Contracts\Container\ContextProviderInterface;
 use Psr\Container\ContainerInterface;
 use RuntimeException;
 

@@ -15,7 +15,7 @@ use DI\Container;
 use DI\ContainerBuilder as PHPDIBuilder;
 use DI\FactoryInterface;
 use PHPdot\Container\Context\ArrayContextProvider;
-use PHPdot\Container\Context\ContextProviderInterface;
+use PHPdot\Contracts\Container\ContextProviderInterface;
 use PHPdot\Container\Definition\DefinitionCompiler;
 use PHPdot\Container\Definition\ScopedDefinition;
 use PHPdot\Container\Scanner\AttributeScanner;

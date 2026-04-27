@@ -11,7 +11,7 @@ declare(strict_types=1);
 namespace PHPdot\Container;
 
 use Closure;
-use PHPdot\Container\Context\ContextProviderInterface;
+use PHPdot\Contracts\Container\ContextProviderInterface;
 use Throwable;
 
 final class ContextResetter

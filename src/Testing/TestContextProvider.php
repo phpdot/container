@@ -11,8 +11,8 @@ declare(strict_types=1);
 namespace PHPdot\Container\Testing;
 
 use PHPdot\Container\Context\ArrayContext;
-use PHPdot\Container\Context\ContextInterface;
-use PHPdot\Container\Context\ContextProviderInterface;
+use PHPdot\Contracts\Container\ContextInterface;
+use PHPdot\Contracts\Container\ContextProviderInterface;
 
 final class TestContextProvider implements ContextProviderInterface
 {

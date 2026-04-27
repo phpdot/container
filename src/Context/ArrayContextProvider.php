@@ -10,6 +10,9 @@ declare(strict_types=1);
  */
 namespace PHPdot\Container\Context;
 
+use PHPdot\Contracts\Container\ContextInterface;
+use PHPdot\Contracts\Container\ContextProviderInterface;
+
 final class ArrayContextProvider implements ContextProviderInterface
 {
     private ArrayContext $context;

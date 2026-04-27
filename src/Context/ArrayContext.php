@@ -10,6 +10,8 @@ declare(strict_types=1);
  */
 namespace PHPdot\Container\Context;
 
+use PHPdot\Contracts\Container\ContextInterface;
+
 final class ArrayContext implements ContextInterface
 {
     /** @var array<string, object> */
