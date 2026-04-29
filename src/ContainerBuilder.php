@@ -15,12 +15,13 @@ use DI\Container;
 use DI\ContainerBuilder as PHPDIBuilder;
 use DI\FactoryInterface;
 use PHPdot\Container\Context\ArrayContextProvider;
-use PHPdot\Contracts\Container\ContextProviderInterface;
 use PHPdot\Container\Definition\DefinitionCompiler;
 use PHPdot\Container\Definition\ScopedDefinition;
 use PHPdot\Container\Scanner\AttributeScanner;
 use PHPdot\Container\Validation\ScopeValidator;
+use PHPdot\Contracts\Container\ContextProviderInterface;
 use Psr\Container\ContainerInterface;
+use RuntimeException;
 
 final class ContainerBuilder
 {
@@ -121,6 +122,30 @@ final class ContainerBuilder
         $this->definitionBatches[] = $definitions;
 
         return $this;
+    }
+
+    /**
+     * Load definitions from a PHP file that returns an array.
+     *
+     * The file must `return [...]` an array of definitions in the same shape
+     * as accepted by addDefinitions(). Throws if the file is missing or does
+     * not return an array — silent no-ops hide bugs.
+     */
+    public function addDefinitionsFromFile(string $path): self
+    {
+        if (!is_file($path)) {
+            throw new RuntimeException("Definitions file not found: {$path}");
+        }
+
+        /** @var mixed $definitions */
+        $definitions = require $path;
+
+        if (!is_array($definitions)) {
+            throw new RuntimeException("Definitions file must return an array: {$path}");
+        }
+
+        /** @var array<string, mixed> $definitions */
+        return $this->addDefinitions($definitions);
     }
 
     /**

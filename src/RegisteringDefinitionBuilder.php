@@ -1,7 +1,6 @@
 <?php
 
 declare(strict_types=1);
-
 namespace PHPdot\Container;
 
 use Closure;
@@ -31,8 +30,7 @@ final class RegisteringDefinitionBuilder
         private readonly string $id,
         private readonly string|null $implementation,
         private readonly Closure|null $factory,
-    ) {
-    }
+    ) {}
 
     /**
      * Register as a singleton (one instance per worker).

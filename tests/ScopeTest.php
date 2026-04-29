@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace PHPdot\Container\Tests;
 
 use PHPdot\Container\ContainerBuilder;
-use PHPdot\Container\Scope;
 
 use function PHPdot\Container\scoped;
 

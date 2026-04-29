@@ -1,46 +1,37 @@
 <?php
 
 declare(strict_types=1);
-
 namespace PHPdot\Container\Tests;
 
+use LogicException;
 use PHPdot\Container\ContainerBuilder;
 use PHPdot\Container\Definition\ScopedDefinition;
 use PHPdot\Container\Scope;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
+use Stringable;
 
-interface CacheInterface
-{
-}
+interface CacheInterface {}
 
-final class FileCache implements CacheInterface
-{
-}
+final class FileCache implements CacheInterface {}
 
-final class RedisCache implements CacheInterface
-{
-}
+final class RedisCache implements CacheInterface {}
 
-final class ApcuCache implements CacheInterface
-{
-}
+final class ApcuCache implements CacheInterface {}
 
 final class Translator
 {
     public function __construct(
         public readonly CacheInterface $cache,
-    ) {
-    }
+    ) {}
 }
 
 final class SessionManager
 {
     public function __construct(
         public readonly CacheInterface $cache,
-    ) {
-    }
+    ) {}
 }
 
 final class MultiDep
@@ -48,22 +39,17 @@ final class MultiDep
     public function __construct(
         public readonly CacheInterface $cache,
         public readonly \Psr\Log\LoggerInterface $logger,
-    ) {
-    }
+    ) {}
 }
 
 final class NullLogger extends \Psr\Log\AbstractLogger
 {
-    public function log(mixed $level, string|\Stringable $message, array $context = []): void
-    {
-    }
+    public function log(mixed $level, string|Stringable $message, array $context = []): void {}
 }
 
 final class CustomLogger extends \Psr\Log\AbstractLogger
 {
-    public function log(mixed $level, string|\Stringable $message, array $context = []): void
-    {
-    }
+    public function log(mixed $level, string|Stringable $message, array $context = []): void {}
 }
 
 final class ContextualBindingTest extends TestCase
@@ -352,7 +338,7 @@ final class ContextualBindingTest extends TestCase
     {
         $builder = new ContainerBuilder();
 
-        $this->expectException(\LogicException::class);
+        $this->expectException(LogicException::class);
 
         $builder->when(Translator::class)
             ->provide(RedisCache::class);

@@ -1,7 +1,6 @@
 <?php
 
 declare(strict_types=1);
-
 namespace PHPdot\Container\Attribute;
 
 use Attribute;
@@ -14,6 +13,5 @@ final class Config
      */
     public function __construct(
         public readonly string $name,
-    ) {
-    }
+    ) {}
 }

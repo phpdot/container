@@ -1,7 +1,6 @@
 <?php
 
 declare(strict_types=1);
-
 namespace PHPdot\Container;
 
 use Closure;
@@ -20,8 +19,7 @@ final readonly class ContextualContainer implements ContainerInterface, FactoryI
     public function __construct(
         private ScopedContainer $inner,
         private array $bindings,
-    ) {
-    }
+    ) {}
 
     public function get(string $id): mixed
     {

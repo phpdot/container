@@ -5,7 +5,6 @@ namespace PHPdot\Container\Tests;
 
 use DI\FactoryInterface;
 use PHPdot\Container\ContainerBuilder;
-use PHPdot\Container\Scope;
 
 use function PHPdot\Container\scoped;
 

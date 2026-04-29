@@ -1,10 +1,10 @@
 <?php
 
 declare(strict_types=1);
-
 namespace PHPdot\Container;
 
 use Closure;
+use LogicException;
 use Psr\Container\ContainerInterface;
 
 /**
@@ -17,8 +17,7 @@ final class ContextualBindingBuilder
     public function __construct(
         private readonly ContainerBuilder $builder,
         private readonly string $consumer,
-    ) {
-    }
+    ) {}
 
     public function needs(string $abstract): self
     {
@@ -33,7 +32,7 @@ final class ContextualBindingBuilder
     public function provide(string|Closure $concrete): void
     {
         if ($this->abstract === '') {
-            throw new \LogicException(
+            throw new LogicException(
                 'Call needs() before provide()',
             );
         }

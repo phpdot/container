@@ -43,8 +43,7 @@ final class ScopedContainer implements ContainerInterface, FactoryInterface
     public function __construct(
         private readonly ContextProviderInterface $contextProvider,
         private readonly array $contextualBindings = [],
-    ) {
-    }
+    ) {}
 
     /**
      * Set the underlying PHP-DI container. Called by ContainerBuilder after build.
