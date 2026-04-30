@@ -159,6 +159,58 @@ final class ScopedContainer implements ContainerInterface, FactoryInterface
     }
 
     /**
+     * List every registered service ID in this container — Scoped, Transient,
+     * Singleton (via PHP-DI), plus anything PHP-DI knows about (PSR-17 bindings,
+     * the container itself, etc.). Sorted alphabetically.
+     *
+     * Use this together with describe() to introspect the live container at
+     * runtime: useful for debug pages, CLI tools, and tests.
+     *
+     * @return list<string>
+     */
+    public function entries(): array
+    {
+        $ids = array_merge(
+            array_keys($this->scopedIds),
+            array_keys($this->transientIds),
+            array_keys($this->phpdiIds),
+            $this->phpdi->getKnownEntryNames(),
+        );
+
+        $ids = array_values(array_unique($ids));
+        sort($ids);
+
+        return $ids;
+    }
+
+    /**
+     * Describe a registered entry — its scope and concrete implementation
+     * (if explicitly aliased).
+     *
+     * The `implementation` field is the class the container will instantiate
+     * when an alias is set (e.g. `Router::class → RouterRT::class` returns
+     * `RouterRT::class`). Null means resolution goes through autowiring or
+     * a factory closure — for the full PHP-DI debug string of singletons,
+     * use `phpdi()->debugEntry($id)`.
+     *
+     * @return array{id: string, scope: string, implementation: string|null}
+     */
+    public function describe(string $id): array
+    {
+        $scope = match (true) {
+            isset($this->scopedIds[$id])    => 'SCOPED',
+            isset($this->transientIds[$id]) => 'TRANSIENT',
+            default                         => 'SINGLETON',
+        };
+
+        return [
+            'id'             => $id,
+            'scope'          => $scope,
+            'implementation' => $this->implementations[$id] ?? null,
+        ];
+    }
+
+    /**
      * Get a scoped instance — cached within the current context.
      */
     private function getScoped(string $id): object

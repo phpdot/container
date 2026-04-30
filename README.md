@@ -355,6 +355,42 @@ $server->on('request', function ($req, $res) use ($container) {
 });
 ```
 
+## Introspection
+
+The container exposes its registered state at runtime — useful for debug pages, CLI tools, and tests:
+
+```php
+$container = (new ContainerBuilder())
+    ->addDefinitions([...])
+    ->build();
+
+// List every registered service ID — sorted alphabetically:
+foreach ($container->entries() as $id) {
+    echo $id . "\n";
+}
+
+// Describe one entry:
+$info = $container->describe(Router::class);
+// [
+//     'id'             => 'PHPdot\\Routing\\Router',
+//     'scope'          => 'SINGLETON',
+//     'implementation' => 'PHPdot\\Routing\\RouterRT\\RouterRT',  // override target
+// ]
+```
+
+`entries()` includes everything: Scoped/Transient/Singleton registrations plus PHP-DI built-ins (PSR-17 bindings, `ContainerInterface` self, etc.).
+
+`describe($id)` returns:
+- `id`: the registered ID
+- `scope`: `'SINGLETON'`, `'SCOPED'`, or `'TRANSIENT'`
+- `implementation`: the aliased concrete class (when explicitly set), or `null` when resolution is by autowire / factory
+
+For full PHP-DI debug output of a singleton (factory shape, dependencies), use the escape hatch:
+
+```php
+echo $container->phpdi()->debugEntry(SomeService::class);
+```
+
 ## Testing
 
 ```php
