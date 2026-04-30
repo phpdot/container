@@ -200,6 +200,8 @@ final class ScopedContainer implements ContainerInterface, FactoryInterface
         $scope = match (true) {
             isset($this->scopedIds[$id])    => 'SCOPED',
             isset($this->transientIds[$id]) => 'TRANSIENT',
+            isset($this->phpdiIds[$id])     => 'SINGLETON',
+            class_exists($id)               => 'SCOPED',
             default                         => 'SINGLETON',
         };
 
