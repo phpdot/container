@@ -1,19 +1,21 @@
 <?php
 
 declare(strict_types=1);
-
 namespace PHPdot\Container\Tests;
 
 use PHPdot\Container\ContainerBuilder;
 use PHPdot\Container\Definition\ScopedDefinition;
 use PHPdot\Container\Scope;
-use PHPdot\Container\Testing\TestContextProvider;
-use PHPUnit\Framework\TestCase;
-use stdClass;
 
 use function PHPdot\Container\scoped;
 use function PHPdot\Container\singleton;
+
+use PHPdot\Container\Testing\TestContextProvider;
+
 use function PHPdot\Container\transient;
+
+use PHPUnit\Framework\TestCase;
+use stdClass;
 
 final class IntrospectionTest extends TestCase
 {
@@ -22,9 +24,9 @@ final class IntrospectionTest extends TestCase
         $container = (new ContainerBuilder())
             ->withContextProvider(new TestContextProvider())
             ->addDefinitions([
-                'svc.singleton' => singleton(static fn () => new stdClass()),
-                'svc.scoped'    => scoped(static fn () => new stdClass()),
-                'svc.transient' => transient(static fn () => new stdClass()),
+                'svc.singleton' => singleton(static fn() => new stdClass()),
+                'svc.scoped'    => scoped(static fn() => new stdClass()),
+                'svc.transient' => transient(static fn() => new stdClass()),
             ])
             ->build();
 
@@ -39,15 +41,15 @@ final class IntrospectionTest extends TestCase
     {
         $container = (new ContainerBuilder())
             ->addDefinitions([
-                'zebra'    => singleton(static fn () => new stdClass()),
-                'alpha'    => singleton(static fn () => new stdClass()),
-                'mid.svc'  => singleton(static fn () => new stdClass()),
+                'zebra'    => singleton(static fn() => new stdClass()),
+                'alpha'    => singleton(static fn() => new stdClass()),
+                'mid.svc'  => singleton(static fn() => new stdClass()),
             ])
             ->build();
 
         $entries = $container->entries();
 
-        $userEntries = array_filter($entries, static fn (string $id): bool => in_array($id, ['zebra', 'alpha', 'mid.svc'], true));
+        $userEntries = array_filter($entries, static fn(string $id): bool => in_array($id, ['zebra', 'alpha', 'mid.svc'], true));
         $userEntries = array_values($userEntries);
 
         self::assertSame(['alpha', 'mid.svc', 'zebra'], $userEntries);
@@ -56,7 +58,7 @@ final class IntrospectionTest extends TestCase
     public function testDescribeIdentifiesScopeForSingleton(): void
     {
         $container = (new ContainerBuilder())
-            ->addDefinitions(['my.id' => singleton(static fn () => new stdClass())])
+            ->addDefinitions(['my.id' => singleton(static fn() => new stdClass())])
             ->build();
 
         $info = $container->describe('my.id');
@@ -70,7 +72,7 @@ final class IntrospectionTest extends TestCase
     {
         $container = (new ContainerBuilder())
             ->withContextProvider(new TestContextProvider())
-            ->addDefinitions(['my.id' => scoped(static fn () => new stdClass())])
+            ->addDefinitions(['my.id' => scoped(static fn() => new stdClass())])
             ->build();
 
         $info = $container->describe('my.id');
@@ -81,7 +83,7 @@ final class IntrospectionTest extends TestCase
     public function testDescribeIdentifiesScopeForTransient(): void
     {
         $container = (new ContainerBuilder())
-            ->addDefinitions(['my.id' => transient(static fn () => new stdClass())])
+            ->addDefinitions(['my.id' => transient(static fn() => new stdClass())])
             ->build();
 
         $info = $container->describe('my.id');

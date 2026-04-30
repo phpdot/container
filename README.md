@@ -391,6 +391,23 @@ For full PHP-DI debug output of a singleton (factory shape, dependencies), use t
 echo $container->phpdi()->debugEntry(SomeService::class);
 ```
 
+### CLI commands
+
+`phpdot/container` ships two CLI commands as `Symfony\Component\Console\Command` classes with `#[AsCommand]`. When the unified `dot` CLI from `phpdot/console` discovers them, they become available as:
+
+```bash
+php dot container:list                                # full table — every entry, scope, implementation
+php dot container:show 'PHPdot\Routing\Router'        # one entry: scope, implementation, debug
+```
+
+The commands inject `Psr\Container\ContainerInterface` and cast to `ScopedContainer` to call `entries()` / `describe()`. Bind them via the standard discovery flow:
+
+```php
+$app = new \PHPdot\Console\Application(config: ..., container: $container);
+$app->discover([__DIR__ . '/vendor/phpdot']);   // picks up container:list, container:show, package:list, etc.
+$app->run();
+```
+
 ## Testing
 
 ```php
