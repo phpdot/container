@@ -28,6 +28,9 @@ final class ScopedContainer implements ContainerInterface, FactoryInterface
     /** @var array<string, true> */
     private array $phpdiIds = [];
 
+    /** @var array<string, true> */
+    private array $phpdiKnownIds = [];
+
     /** @var array<string, Closure|null> */
     private array $factories = [];
 
@@ -51,6 +54,7 @@ final class ScopedContainer implements ContainerInterface, FactoryInterface
     public function setPhpDi(Container $phpdi): void
     {
         $this->phpdi = $phpdi;
+        $this->phpdiKnownIds = array_fill_keys($phpdi->getKnownEntryNames(), true);
     }
 
     /**
@@ -99,6 +103,10 @@ final class ScopedContainer implements ContainerInterface, FactoryInterface
         }
 
         if (isset($this->phpdiIds[$id])) {
+            return $this->phpdi->get($id);
+        }
+
+        if (isset($this->phpdiKnownIds[$id])) {
             return $this->phpdi->get($id);
         }
 
@@ -198,11 +206,12 @@ final class ScopedContainer implements ContainerInterface, FactoryInterface
     public function describe(string $id): array
     {
         $scope = match (true) {
-            isset($this->scopedIds[$id])    => 'SCOPED',
-            isset($this->transientIds[$id]) => 'TRANSIENT',
-            isset($this->phpdiIds[$id])     => 'SINGLETON',
-            class_exists($id)               => 'SCOPED',
-            default                         => 'SINGLETON',
+            isset($this->scopedIds[$id])     => 'SCOPED',
+            isset($this->transientIds[$id])  => 'TRANSIENT',
+            isset($this->phpdiIds[$id])      => 'SINGLETON',
+            isset($this->phpdiKnownIds[$id]) => 'SINGLETON',
+            class_exists($id)                => 'SCOPED',
+            default                          => 'SINGLETON',
         };
 
         return [
