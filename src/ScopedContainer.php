@@ -15,7 +15,13 @@ use DI\Container;
 use DI\FactoryInterface;
 use PHPdot\Contracts\Container\ContextProviderInterface;
 use Psr\Container\ContainerInterface;
+use ReflectionClass;
+use ReflectionIntersectionType;
+use ReflectionNamedType;
+use ReflectionParameter;
+use ReflectionUnionType;
 use RuntimeException;
+use Throwable;
 
 final class ScopedContainer implements ContainerInterface, FactoryInterface
 {
@@ -253,7 +259,7 @@ final class ScopedContainer implements ContainerInterface, FactoryInterface
             $instance = $factory($container);
         } else {
             $target = $this->implementations[$id] ?? $id;
-            $instance = $this->phpdi->make($target);
+            $instance = $this->autowire($target, $id);
         }
 
         if (!is_object($instance)) {
@@ -261,5 +267,155 @@ final class ScopedContainer implements ContainerInterface, FactoryInterface
         }
 
         return $instance;
+    }
+
+    /**
+     * Autowire a class without going through PHP-DI's resolution stack.
+     *
+     * PHP-DI's `make()` keeps a process-global `entriesBeingResolved` map to
+     * detect circular dependencies. In a coroutine runtime that map leaks
+     * across coroutines: if a dep's factory suspends mid-resolution (e.g.,
+     * `Pool::borrow()` waiting on a `Channel`), a second coroutine entering
+     * the same `make()` sees the stale flag and throws a false circular-dep.
+     *
+     * This method autowires by reflection alone, recursing back into
+     * `$this->get()` for each typed dep — keeping resolution coroutine-safe
+     * because the only state involved is the per-coroutine context cache.
+     *
+     * @param class-string|string $class Concrete class to instantiate
+     * @param string $id Original entry id (for error messages)
+     */
+    private function autowire(string $class, string $id): object
+    {
+        if (!class_exists($class)) {
+            throw new RuntimeException("Cannot autowire '{$id}': class '{$class}' does not exist.");
+        }
+
+        $ref = new ReflectionClass($class);
+
+        if (!$ref->isInstantiable()) {
+            throw new RuntimeException("Cannot autowire '{$id}': '{$class}' is not instantiable.");
+        }
+
+        $ctor = $ref->getConstructor();
+        if ($ctor === null) {
+            return $ref->newInstance();
+        }
+
+        $resolver = isset($this->contextualBindings[$id])
+            ? new ContextualContainer($this, $this->contextualBindings[$id])
+            : $this;
+
+        $args = [];
+        foreach ($ctor->getParameters() as $param) {
+            if ($param->isVariadic()) {
+                break;
+            }
+            $args[] = $this->resolveParameter($param, $resolver, $class);
+        }
+
+        return $ref->newInstanceArgs($args);
+    }
+
+    /**
+     * Resolve a single constructor parameter.
+     */
+    private function resolveParameter(ReflectionParameter $param, ContainerInterface $resolver, string $class): mixed
+    {
+        $type = $param->getType();
+
+        // No type hint
+        if ($type === null) {
+            if ($param->isDefaultValueAvailable()) {
+                return $param->getDefaultValue();
+            }
+            throw new RuntimeException(
+                "Cannot autowire parameter \${$param->getName()} of {$class}: no type hint and no default value.",
+            );
+        }
+
+        // Single named class — the common case
+        if ($type instanceof ReflectionNamedType) {
+            return $this->resolveNamedType($type, $param, $resolver, $class);
+        }
+
+        // Union: try each named class, fall back to default/null
+        if ($type instanceof ReflectionUnionType) {
+            foreach ($type->getTypes() as $sub) {
+                if ($sub instanceof ReflectionNamedType && !$sub->isBuiltin()) {
+                    try {
+                        /** @var class-string $name */
+                        $name = $sub->getName();
+                        return $resolver->get($name);
+                    } catch (Throwable) {
+                        continue;
+                    }
+                }
+            }
+            if ($param->isDefaultValueAvailable()) {
+                return $param->getDefaultValue();
+            }
+            if ($type->allowsNull()) {
+                return null;
+            }
+            throw new RuntimeException(
+                "Cannot autowire parameter \${$param->getName()} of {$class}: union type with no resolvable member.",
+            );
+        }
+
+        // Intersection: PHP-DI doesn't support these for autowiring either
+        if ($type instanceof ReflectionIntersectionType) {
+            if ($param->isDefaultValueAvailable()) {
+                return $param->getDefaultValue();
+            }
+            throw new RuntimeException(
+                "Cannot autowire parameter \${$param->getName()} of {$class}: intersection types not supported.",
+            );
+        }
+
+        if ($param->isDefaultValueAvailable()) {
+            return $param->getDefaultValue();
+        }
+
+        throw new RuntimeException(
+            "Cannot autowire parameter \${$param->getName()} of {$class}: unsupported type.",
+        );
+    }
+
+    /**
+     * Resolve a single named type parameter.
+     */
+    private function resolveNamedType(
+        ReflectionNamedType $type,
+        ReflectionParameter $param,
+        ContainerInterface $resolver,
+        string $class,
+    ): mixed {
+        if ($type->isBuiltin()) {
+            if ($param->isDefaultValueAvailable()) {
+                return $param->getDefaultValue();
+            }
+            if ($type->allowsNull()) {
+                return null;
+            }
+            throw new RuntimeException(
+                "Cannot autowire parameter \${$param->getName()} of {$class}: builtin type '{$type->getName()}' has no default.",
+            );
+        }
+
+        /** @var class-string $name */
+        $name = $type->getName();
+
+        try {
+            return $resolver->get($name);
+        } catch (Throwable $e) {
+            if ($param->isDefaultValueAvailable()) {
+                return $param->getDefaultValue();
+            }
+            if ($type->allowsNull()) {
+                return null;
+            }
+            throw $e;
+        }
     }
 }
