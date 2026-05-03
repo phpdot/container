@@ -305,7 +305,12 @@ final class ContainerBuilder
         $container->registerPhpDiId(FactoryInterface::class);
 
         foreach ($scopedEntries as $id => $definition) {
-            $container->registerScoped($id, $definition->factory, $definition->implementation);
+            $container->registerScoped(
+                $id,
+                $definition->factory,
+                $definition->implementation,
+                $definition->onDestroy,
+            );
         }
 
         foreach ($transientEntries as $id => $definition) {

@@ -12,13 +12,16 @@ namespace PHPdot\Container\Definition;
 
 use Closure;
 use PHPdot\Container\Scope;
+use Psr\Container\ContainerInterface;
 
 final class ScopedDefinition
 {
     /**
      * @param class-string|null $implementation
      * @param Closure|null $factory
-     * @param Closure|null $onDestroy
+     * @param Closure(object, ContainerInterface): void|null $onDestroy
+     *     Fires at end of context (coroutine end in Swoole, reset() in FPM/CLI)
+     *     when the active context implements ContextDestroyInterface.
      */
     public function __construct(
         public readonly Scope $scope,
@@ -28,7 +31,7 @@ final class ScopedDefinition
     ) {}
 
     /**
-     * @param Closure(object): void $callback
+     * @param Closure(object, ContainerInterface): void $callback
      */
     public function withOnDestroy(Closure $callback): self
     {

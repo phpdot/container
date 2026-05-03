@@ -27,14 +27,19 @@ function singleton(string|Closure|null $implementation = null): ScopedDefinition
  * Mark a definition as Scoped (cached per context/request).
  *
  * @param class-string|Closure|null $implementation
+ * @param Closure(object, \Psr\Container\ContainerInterface): void|null $onDestroy
+ *     Optional callback fired when the context ends (coroutine end in Swoole,
+ *     reset() in FPM/CLI). Receives the cached instance and the container.
  */
-function scoped(string|Closure|null $implementation = null): ScopedDefinition
-{
+function scoped(
+    string|Closure|null $implementation = null,
+    Closure|null $onDestroy = null,
+): ScopedDefinition {
     if ($implementation instanceof Closure) {
-        return new ScopedDefinition(Scope::SCOPED, factory: $implementation);
+        return new ScopedDefinition(Scope::SCOPED, factory: $implementation, onDestroy: $onDestroy);
     }
 
-    return new ScopedDefinition(Scope::SCOPED, implementation: $implementation);
+    return new ScopedDefinition(Scope::SCOPED, implementation: $implementation, onDestroy: $onDestroy);
 }
 
 /**

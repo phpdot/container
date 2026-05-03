@@ -13,6 +13,7 @@ namespace PHPdot\Container;
 use Closure;
 use DI\Container;
 use DI\FactoryInterface;
+use PHPdot\Contracts\Container\ContextDestroyInterface;
 use PHPdot\Contracts\Container\ContextProviderInterface;
 use Psr\Container\ContainerInterface;
 use ReflectionClass;
@@ -43,6 +44,9 @@ final class ScopedContainer implements ContainerInterface, FactoryInterface
     /** @var array<string, string|null> */
     private array $implementations = [];
 
+    /** @var array<string, Closure(object, ContainerInterface): void> */
+    private array $onDestroyCallbacks = [];
+
     private Container $phpdi;
 
     /**
@@ -67,12 +71,22 @@ final class ScopedContainer implements ContainerInterface, FactoryInterface
      * Register a scoped entry.
      *
      * @param class-string|null $implementation
+     * @param Closure(object, ContainerInterface): void|null $onDestroy
+     *     Called at end of context (coroutine end in Swoole, reset() in FPM/CLI)
+     *     when the active context implements `ContextDestroyInterface`.
      */
-    public function registerScoped(string $id, Closure|null $factory = null, string|null $implementation = null): void
-    {
+    public function registerScoped(
+        string $id,
+        Closure|null $factory = null,
+        string|null $implementation = null,
+        Closure|null $onDestroy = null,
+    ): void {
         $this->scopedIds[$id] = true;
         $this->factories[$id] = $factory;
         $this->implementations[$id] = $implementation;
+        if ($onDestroy !== null) {
+            $this->onDestroyCallbacks[$id] = $onDestroy;
+        }
     }
 
     /**
@@ -241,6 +255,21 @@ final class ScopedContainer implements ContainerInterface, FactoryInterface
 
         $instance = $this->resolve($id);
         $ctx->set($id, $instance);
+
+        if (
+            isset($this->onDestroyCallbacks[$id])
+            && $ctx instanceof ContextDestroyInterface
+        ) {
+            $onDestroy = $this->onDestroyCallbacks[$id];
+            $resolver = $this;
+            $ctx->onDestroy(static function () use ($onDestroy, $instance, $resolver): void {
+                try {
+                    $onDestroy($instance, $resolver);
+                } catch (Throwable) {
+                    // Destroy callbacks must not propagate
+                }
+            });
+        }
 
         return $instance;
     }
