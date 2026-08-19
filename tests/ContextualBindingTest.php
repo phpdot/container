@@ -1,11 +1,12 @@
 <?php
 
 declare(strict_types=1);
+
 namespace PHPdot\Container\Tests;
 
-use LogicException;
 use PHPdot\Container\ContainerBuilder;
 use PHPdot\Container\Definition\ScopedDefinition;
+use PHPdot\Container\Exception\ContainerException;
 use PHPdot\Container\Scope;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -338,7 +339,7 @@ final class ContextualBindingTest extends TestCase
     {
         $builder = new ContainerBuilder();
 
-        $this->expectException(LogicException::class);
+        $this->expectException(ContainerException::class);
 
         $builder->when(Translator::class)
             ->provide(RedisCache::class);

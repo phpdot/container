@@ -1,15 +1,18 @@
 <?php
 
 declare(strict_types=1);
+
 namespace PHPdot\Container\Tests;
 
 use function PHPdot\Container\vendor;
 
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 final class VendorFunctionTest extends TestCase
 {
-    public function testReturnsVendorDirWhenCalledWithoutArguments(): void
+    #[Test]
+    public function returnsVendorDirWhenCalledWithoutArguments(): void
     {
         $vendorDir = vendor();
 
@@ -18,7 +21,8 @@ final class VendorFunctionTest extends TestCase
         self::assertDirectoryExists($vendorDir . '/composer');
     }
 
-    public function testJoinsRelativeSegmentToVendorDir(): void
+    #[Test]
+    public function joinsRelativeSegmentToVendorDir(): void
     {
         $path = vendor('autoload.php');
 
@@ -26,7 +30,8 @@ final class VendorFunctionTest extends TestCase
         self::assertFileExists($path);
     }
 
-    public function testStripsLeadingSlashFromRelativeSegment(): void
+    #[Test]
+    public function stripsLeadingSlashFromRelativeSegment(): void
     {
         $without = vendor('autoload.php');
         $with = vendor('/autoload.php');
@@ -34,7 +39,8 @@ final class VendorFunctionTest extends TestCase
         self::assertSame($without, $with);
     }
 
-    public function testReturnsAbsolutePath(): void
+    #[Test]
+    public function returnsAbsolutePath(): void
     {
         self::assertStringStartsWith('/', vendor());
     }

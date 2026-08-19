@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 namespace PHPdot\Container\Tests\Cli\Command;
 
 use PHPdot\Container\Cli\Command\ListCommand;
@@ -13,7 +14,6 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 use Symfony\Component\Console\Command\Command;
-
 use Symfony\Component\Console\Tester\CommandTester;
 
 final class ListCommandTest extends TestCase

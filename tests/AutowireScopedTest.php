@@ -5,13 +5,17 @@ declare(strict_types=1);
 namespace PHPdot\Container\Tests;
 
 use PHPdot\Container\ContainerBuilder;
-use PHPdot\Container\ScopedContainer;
-use PHPdot\Container\Testing\TestContextProvider;
-use PHPUnit\Framework\TestCase;
-use RuntimeException;
 
 use function PHPdot\Container\scoped;
+
+use PHPdot\Container\ScopedContainer;
+
 use function PHPdot\Container\singleton;
+
+use PHPdot\Container\Testing\TestContextProvider;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 /**
  * Coverage for the reflection-based autowiring used by ScopedContainer for
@@ -36,7 +40,8 @@ final class AutowireScopedTest extends TestCase
         $this->provider = new TestContextProvider();
     }
 
-    public function testScopedClassWithNoFactoryIsAutowired(): void
+    #[Test]
+    public function scopedClassWithNoFactoryIsAutowired(): void
     {
         $container = $this->build([
             AutowireBare::class => scoped(),
@@ -47,7 +52,8 @@ final class AutowireScopedTest extends TestCase
         self::assertInstanceOf(AutowireBare::class, $instance);
     }
 
-    public function testScopedClassResolvesTypedDepsViaContainer(): void
+    #[Test]
+    public function scopedClassResolvesTypedDepsViaContainer(): void
     {
         $container = $this->build([
             AutowireDep::class    => singleton(),
@@ -59,7 +65,8 @@ final class AutowireScopedTest extends TestCase
         self::assertSame($container->get(AutowireDep::class), $parent->dep);
     }
 
-    public function testNestedScopedAutowiringResolvesEachLayerThroughContainer(): void
+    #[Test]
+    public function nestedScopedAutowiringResolvesEachLayerThroughContainer(): void
     {
         $container = $this->build([
             AutowireDep::class       => singleton(),
@@ -74,7 +81,8 @@ final class AutowireScopedTest extends TestCase
         self::assertInstanceOf(AutowireDep::class, $outer->middle->dep);
     }
 
-    public function testDefaultValuesAreUsedForBuiltinParams(): void
+    #[Test]
+    public function defaultValuesAreUsedForBuiltinParams(): void
     {
         $container = $this->build([
             AutowireWithDefaults::class => scoped(),
@@ -86,7 +94,8 @@ final class AutowireScopedTest extends TestCase
         self::assertSame('hello', $instance->label);
     }
 
-    public function testNullableTypedDepFallsBackToNullWhenNotRegistered(): void
+    #[Test]
+    public function nullableTypedDepFallsBackToNullWhenNotRegistered(): void
     {
         $container = $this->build([
             AutowireWithNullableDep::class => scoped(),
@@ -99,7 +108,8 @@ final class AutowireScopedTest extends TestCase
         self::assertInstanceOf(AutowireUnregistered::class, $instance->dep);
     }
 
-    public function testRequiredBuiltinWithoutDefaultThrows(): void
+    #[Test]
+    public function requiredBuiltinWithoutDefaultThrows(): void
     {
         $container = $this->build([
             AutowireRequiredBuiltin::class => scoped(),
@@ -111,7 +121,8 @@ final class AutowireScopedTest extends TestCase
         $container->get(AutowireRequiredBuiltin::class);
     }
 
-    public function testNonInstantiableThrows(): void
+    #[Test]
+    public function nonInstantiableThrows(): void
     {
         $container = $this->build([
             AutowireAbstract::class => scoped(),
@@ -123,7 +134,8 @@ final class AutowireScopedTest extends TestCase
         $container->get(AutowireAbstract::class);
     }
 
-    public function testScopedAutowiredInstanceIsCachedPerContext(): void
+    #[Test]
+    public function scopedAutowiredInstanceIsCachedPerContext(): void
     {
         $container = $this->build([
             AutowireDep::class    => singleton(),
@@ -148,7 +160,8 @@ final class AutowireScopedTest extends TestCase
      * during `$phpdi->make()` could leave PHP-DI's `entriesBeingResolved`
      * inconsistent if the dep was resolved out-of-band.
      */
-    public function testThrowingDepDoesNotPoisonSubsequentResolutions(): void
+    #[Test]
+    public function throwingDepDoesNotPoisonSubsequentResolutions(): void
     {
         $attempts = 0;
 
@@ -230,7 +243,7 @@ final class AutowireUnregistered {}
 final class AutowireWithNullableDep
 {
     public function __construct(
-        public readonly ?AutowireUnregistered $dep = null,
+        public readonly null|AutowireUnregistered $dep = null,
     ) {}
 }
 

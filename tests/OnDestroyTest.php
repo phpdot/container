@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace PHPdot\Container\Tests;
 
-use Closure;
 use PHPdot\Container\ContainerBuilder;
 use PHPdot\Container\Context\ArrayContext;
 use PHPdot\Container\Context\ArrayContextProvider;
-use PHPdot\Container\ScopedContainer;
-use PHPdot\Container\Testing\TestContextProvider;
-use PHPdot\Contracts\Container\ContextDestroyInterface;
-use PHPUnit\Framework\TestCase;
-use Psr\Container\ContainerInterface;
-use stdClass;
 
 use function PHPdot\Container\scoped;
 use function PHPdot\Container\singleton;
+
+use PHPdot\Container\Testing\TestContextProvider;
+use PHPdot\Contracts\Container\ContextDestroyInterface;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+use Psr\Container\ContainerInterface;
+use stdClass;
 
 /**
  * Coverage for the per-instance onDestroy lifecycle.
@@ -28,13 +28,15 @@ use function PHPdot\Container\singleton;
  */
 final class OnDestroyTest extends TestCase
 {
-    public function testArrayContextImplementsContextDestroyInterface(): void
+    #[Test]
+    public function arrayContextImplementsContextDestroyInterface(): void
     {
         $ctx = new ArrayContext();
         self::assertInstanceOf(ContextDestroyInterface::class, $ctx);
     }
 
-    public function testOnDestroyCallbackFiresOnContextReset(): void
+    #[Test]
+    public function onDestroyCallbackFiresOnContextReset(): void
     {
         $fired = [];
         $ctx = new ArrayContext();
@@ -51,7 +53,8 @@ final class OnDestroyTest extends TestCase
         self::assertSame(['two', 'one'], $fired);
     }
 
-    public function testOnDestroyCallbacksClearedAfterReset(): void
+    #[Test]
+    public function onDestroyCallbacksClearedAfterReset(): void
     {
         $count = 0;
         $ctx = new ArrayContext();
@@ -65,7 +68,8 @@ final class OnDestroyTest extends TestCase
         self::assertSame(1, $count);
     }
 
-    public function testThrowingDestroyCallbackDoesNotPreventOthers(): void
+    #[Test]
+    public function throwingDestroyCallbackDoesNotPreventOthers(): void
     {
         $fired = [];
         $ctx = new ArrayContext();
@@ -85,7 +89,8 @@ final class OnDestroyTest extends TestCase
         self::assertSame(['before', 'after'], $fired);
     }
 
-    public function testScopedFactoryWithOnDestroyFiresOnContextReset(): void
+    #[Test]
+    public function scopedFactoryWithOnDestroyFiresOnContextReset(): void
     {
         $released = [];
 
@@ -98,7 +103,7 @@ final class OnDestroyTest extends TestCase
                     return ['borrowed' => []];
                 }),
                 stdClass::class => scoped(
-                    static fn (ContainerInterface $c): stdClass => new stdClass(),
+                    static fn(ContainerInterface $c): stdClass => new stdClass(),
                     onDestroy: static function (object $instance, ContainerInterface $c) use (&$released): void {
                         $released[] = spl_object_id($instance);
                     },
@@ -117,7 +122,8 @@ final class OnDestroyTest extends TestCase
         self::assertSame([$aId], $released);
     }
 
-    public function testOnDestroyArmedOncePerContextEvenWithRepeatedGets(): void
+    #[Test]
+    public function onDestroyArmedOncePerContextEvenWithRepeatedGets(): void
     {
         $callCount = 0;
 
@@ -127,7 +133,7 @@ final class OnDestroyTest extends TestCase
             ->withScopeValidation(false)
             ->addDefinitions([
                 stdClass::class => scoped(
-                    static fn (): stdClass => new stdClass(),
+                    static fn(): stdClass => new stdClass(),
                     onDestroy: static function () use (&$callCount): void {
                         $callCount++;
                     },
@@ -149,7 +155,8 @@ final class OnDestroyTest extends TestCase
         self::assertSame(1, $callCount);
     }
 
-    public function testOnDestroyReceivesInstanceAndContainer(): void
+    #[Test]
+    public function onDestroyReceivesInstanceAndContainer(): void
     {
         $captured = null;
 
@@ -159,7 +166,7 @@ final class OnDestroyTest extends TestCase
             ->withScopeValidation(false)
             ->addDefinitions([
                 stdClass::class => scoped(
-                    static fn (): stdClass => new stdClass(),
+                    static fn(): stdClass => new stdClass(),
                     onDestroy: static function (object $instance, ContainerInterface $c) use (&$captured): void {
                         $captured = ['instance' => $instance, 'container' => $c];
                     },
@@ -175,7 +182,8 @@ final class OnDestroyTest extends TestCase
         self::assertInstanceOf(ContainerInterface::class, $captured['container']);
     }
 
-    public function testNoOnDestroyMeansNoCallback(): void
+    #[Test]
+    public function noOnDestroyMeansNoCallback(): void
     {
         // Smoke test: scoped binding without onDestroy still works as before
         $provider = new ArrayContextProvider();
@@ -183,7 +191,7 @@ final class OnDestroyTest extends TestCase
             ->withContextProvider($provider)
             ->withScopeValidation(false)
             ->addDefinitions([
-                stdClass::class => scoped(static fn (): stdClass => new stdClass()),
+                stdClass::class => scoped(static fn(): stdClass => new stdClass()),
             ])
             ->build();
 
@@ -193,7 +201,8 @@ final class OnDestroyTest extends TestCase
         self::assertInstanceOf(stdClass::class, $instance);
     }
 
-    public function testOnDestroyNotArmedWhenFactoryThrows(): void
+    #[Test]
+    public function onDestroyNotArmedWhenFactoryThrows(): void
     {
         $destroyCalled = false;
 
@@ -225,7 +234,8 @@ final class OnDestroyTest extends TestCase
         self::assertFalse($destroyCalled);
     }
 
-    public function testDestroyFiresPerContextNotGlobally(): void
+    #[Test]
+    public function destroyFiresPerContextNotGlobally(): void
     {
         $fired = [];
 
@@ -235,7 +245,7 @@ final class OnDestroyTest extends TestCase
             ->withScopeValidation(false)
             ->addDefinitions([
                 stdClass::class => scoped(
-                    static fn (): stdClass => new stdClass(),
+                    static fn(): stdClass => new stdClass(),
                     onDestroy: static function (object $instance) use (&$fired): void {
                         $fired[] = spl_object_id($instance);
                     },

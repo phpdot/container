@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 namespace PHPdot\Container\Tests;
 
 use PHPdot\Container\ContainerBuilder;
@@ -10,11 +11,13 @@ use function PHPdot\Container\singleton;
 
 use PHPdot\Container\Testing\TestContextProvider;
 use PHPdot\Container\Validation\ScopeMismatchException;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 final class ValidationTest extends TestCase
 {
-    public function testSingletonDependingOnScopedThrows(): void
+    #[Test]
+    public function singletonDependingOnScopedThrows(): void
     {
         $this->expectException(ScopeMismatchException::class);
 
@@ -28,7 +31,8 @@ final class ValidationTest extends TestCase
             ->build();
     }
 
-    public function testScopedDependingOnSingletonAllowed(): void
+    #[Test]
+    public function scopedDependingOnSingletonAllowed(): void
     {
         $container = (new ContainerBuilder())
             ->withContextProvider(new TestContextProvider())
@@ -42,7 +46,8 @@ final class ValidationTest extends TestCase
         $this->assertNotNull($container);
     }
 
-    public function testValidationCanBeDisabled(): void
+    #[Test]
+    public function validationCanBeDisabled(): void
     {
         // Should not throw even with invalid dependencies
         $container = (new ContainerBuilder())

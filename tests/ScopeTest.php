@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 namespace PHPdot\Container\Tests;
 
 use PHPdot\Container\ContainerBuilder;
@@ -15,6 +16,7 @@ use PHPdot\Container\Testing\TestContextProvider;
 
 use function PHPdot\Container\transient;
 
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
@@ -29,7 +31,8 @@ final class ScopeTest extends TestCase
 
     // ─── Singleton ───
 
-    public function testSingletonReturnsSameInstance(): void
+    #[Test]
+    public function singletonReturnsSameInstance(): void
     {
         $container = $this->build([
             'service' => singleton(function () {
@@ -43,7 +46,8 @@ final class ScopeTest extends TestCase
         $this->assertSame($a, $b);
     }
 
-    public function testSingletonSurvivesContextSwitch(): void
+    #[Test]
+    public function singletonSurvivesContextSwitch(): void
     {
         $container = $this->build([
             'service' => singleton(function () {
@@ -60,7 +64,8 @@ final class ScopeTest extends TestCase
 
     // ─── Scoped ───
 
-    public function testScopedReturnsSameInstanceWithinContext(): void
+    #[Test]
+    public function scopedReturnsSameInstanceWithinContext(): void
     {
         $container = $this->build([
             'service' => scoped(function () {
@@ -74,7 +79,8 @@ final class ScopeTest extends TestCase
         $this->assertSame($a, $b);
     }
 
-    public function testScopedReturnsDifferentInstanceAcrossContexts(): void
+    #[Test]
+    public function scopedReturnsDifferentInstanceAcrossContexts(): void
     {
         $container = $this->build([
             'service' => scoped(function () {
@@ -89,7 +95,8 @@ final class ScopeTest extends TestCase
         $this->assertNotSame($a, $b);
     }
 
-    public function testScopedWithClassAutowiring(): void
+    #[Test]
+    public function scopedWithClassAutowiring(): void
     {
         $container = $this->build([
             stdClass::class => scoped(),
@@ -106,7 +113,8 @@ final class ScopeTest extends TestCase
 
     // ─── Transient ───
 
-    public function testTransientAlwaysReturnsNewInstance(): void
+    #[Test]
+    public function transientAlwaysReturnsNewInstance(): void
     {
         $container = $this->build([
             'service' => transient(function () {
@@ -120,7 +128,8 @@ final class ScopeTest extends TestCase
         $this->assertNotSame($a, $b);
     }
 
-    public function testTransientWithClassAutowiring(): void
+    #[Test]
+    public function transientWithClassAutowiring(): void
     {
         $container = $this->build([
             stdClass::class => transient(),
@@ -134,7 +143,8 @@ final class ScopeTest extends TestCase
 
     // ─── Mixed scopes ───
 
-    public function testMixedScopes(): void
+    #[Test]
+    public function mixedScopes(): void
     {
         $container = $this->build([
             'single' => singleton(function () {
@@ -176,7 +186,8 @@ final class ScopeTest extends TestCase
 
     // ─── PHP-DI values ───
 
-    public function testPhpDiValueDefinition(): void
+    #[Test]
+    public function phpDiValueDefinition(): void
     {
         $container = $this->build([
             'config.name' => \DI\value('PHPdot'),
@@ -189,7 +200,8 @@ final class ScopeTest extends TestCase
 
     // ─── has() ───
 
-    public function testHasReturnsTrueForAllScopes(): void
+    #[Test]
+    public function hasReturnsTrueForAllScopes(): void
     {
         $container = $this->build([
             'single' => singleton(fn() => new stdClass()),
@@ -207,7 +219,8 @@ final class ScopeTest extends TestCase
 
     // ─── make() ───
 
-    public function testMakeAlwaysCreatesNewInstance(): void
+    #[Test]
+    public function makeAlwaysCreatesNewInstance(): void
     {
         $container = $this->build([
             stdClass::class => singleton(),
@@ -221,7 +234,8 @@ final class ScopeTest extends TestCase
 
     // ─── Context resetter ───
 
-    public function testContextResetterClearsContext(): void
+    #[Test]
+    public function contextResetterClearsContext(): void
     {
         $container = $this->build([
             'service' => scoped(function () {
@@ -241,7 +255,8 @@ final class ScopeTest extends TestCase
 
     // ─── Factory receives container ───
 
-    public function testScopedFactoryReceivesContainer(): void
+    #[Test]
+    public function scopedFactoryReceivesContainer(): void
     {
         $container = $this->build([
             'dep' => \DI\value('injected-value'),
@@ -260,7 +275,8 @@ final class ScopeTest extends TestCase
 
     // ─── Multiple contexts ───
 
-    public function testMultipleNamedContexts(): void
+    #[Test]
+    public function multipleNamedContexts(): void
     {
         $container = $this->build([
             'service' => scoped(function () {
@@ -287,7 +303,8 @@ final class ScopeTest extends TestCase
 
     // ─── Default scoped for unregistered classes ───
 
-    public function testUnregisteredClassDefaultsToScoped(): void
+    #[Test]
+    public function unregisteredClassDefaultsToScoped(): void
     {
         $container = $this->build([]);
 
@@ -300,7 +317,8 @@ final class ScopeTest extends TestCase
         $this->assertNotSame($a, $c, 'Different instance across contexts');
     }
 
-    public function testExplicitSingletonNotAffectedByDefaultScoped(): void
+    #[Test]
+    public function explicitSingletonNotAffectedByDefaultScoped(): void
     {
         $container = $this->build([
             stdClass::class => singleton(),
@@ -313,7 +331,8 @@ final class ScopeTest extends TestCase
         $this->assertSame($a, $b, 'Explicit singleton survives context switch');
     }
 
-    public function testDiValueNotAffectedByDefaultScoped(): void
+    #[Test]
+    public function diValueNotAffectedByDefaultScoped(): void
     {
         $container = $this->build([
             'config.name' => \DI\value('PHPdot'),
@@ -325,7 +344,8 @@ final class ScopeTest extends TestCase
         $this->assertSame('PHPdot', $container->get('config.name'));
     }
 
-    public function testDiFactoryNotAffectedByDefaultScoped(): void
+    #[Test]
+    public function diFactoryNotAffectedByDefaultScoped(): void
     {
         $counter = 0;
         $container = $this->build([
@@ -344,7 +364,8 @@ final class ScopeTest extends TestCase
         $this->assertSame(1, $counter);
     }
 
-    public function testContextResetterStaysSingleton(): void
+    #[Test]
+    public function contextResetterStaysSingleton(): void
     {
         $container = $this->build([]);
 
@@ -355,7 +376,8 @@ final class ScopeTest extends TestCase
         $this->assertSame($a, $b);
     }
 
-    public function testUnregisteredClassWithDependencyDefaultsToScoped(): void
+    #[Test]
+    public function unregisteredClassWithDependencyDefaultsToScoped(): void
     {
         $container = $this->build([]);
 

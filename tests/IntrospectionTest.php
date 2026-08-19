@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 namespace PHPdot\Container\Tests;
 
 use PHPdot\Container\ContainerBuilder;
@@ -14,12 +15,14 @@ use PHPdot\Container\Testing\TestContextProvider;
 
 use function PHPdot\Container\transient;
 
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
 final class IntrospectionTest extends TestCase
 {
-    public function testEntriesListsAllRegisteredIds(): void
+    #[Test]
+    public function entriesListsAllRegisteredIds(): void
     {
         $container = (new ContainerBuilder())
             ->withContextProvider(new TestContextProvider())
@@ -37,7 +40,8 @@ final class IntrospectionTest extends TestCase
         self::assertContains('svc.transient', $entries);
     }
 
-    public function testEntriesAreSortedAlphabetically(): void
+    #[Test]
+    public function entriesAreSortedAlphabetically(): void
     {
         $container = (new ContainerBuilder())
             ->addDefinitions([
@@ -55,7 +59,8 @@ final class IntrospectionTest extends TestCase
         self::assertSame(['alpha', 'mid.svc', 'zebra'], $userEntries);
     }
 
-    public function testDescribeIdentifiesScopeForSingleton(): void
+    #[Test]
+    public function describeIdentifiesScopeForSingleton(): void
     {
         $container = (new ContainerBuilder())
             ->addDefinitions(['my.id' => singleton(static fn() => new stdClass())])
@@ -68,7 +73,8 @@ final class IntrospectionTest extends TestCase
         self::assertNull($info['implementation']);
     }
 
-    public function testDescribeIdentifiesScopeForScoped(): void
+    #[Test]
+    public function describeIdentifiesScopeForScoped(): void
     {
         $container = (new ContainerBuilder())
             ->withContextProvider(new TestContextProvider())
@@ -80,7 +86,8 @@ final class IntrospectionTest extends TestCase
         self::assertSame('SCOPED', $info['scope']);
     }
 
-    public function testDescribeIdentifiesScopeForTransient(): void
+    #[Test]
+    public function describeIdentifiesScopeForTransient(): void
     {
         $container = (new ContainerBuilder())
             ->addDefinitions(['my.id' => transient(static fn() => new stdClass())])
@@ -91,7 +98,8 @@ final class IntrospectionTest extends TestCase
         self::assertSame('TRANSIENT', $info['scope']);
     }
 
-    public function testDescribeReportsImplementationForOverriddenBinding(): void
+    #[Test]
+    public function describeReportsImplementationForOverriddenBinding(): void
     {
         $container = (new ContainerBuilder())
             ->withContextProvider(new TestContextProvider())
@@ -105,7 +113,8 @@ final class IntrospectionTest extends TestCase
         self::assertSame(stdClass::class, $info['implementation']);
     }
 
-    public function testEntriesIncludesPhpDiBuiltins(): void
+    #[Test]
+    public function entriesIncludesPhpDiBuiltins(): void
     {
         $container = (new ContainerBuilder())->build();
 

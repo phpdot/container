@@ -8,14 +8,15 @@ use PHPdot\Container\Cli\Command\ShowCommand;
 use PHPdot\Container\ContainerBuilder;
 use PHPdot\Container\Definition\ScopedDefinition;
 use PHPdot\Container\Scope;
+
+use function PHPdot\Container\singleton;
+
 use PHPdot\Container\Testing\TestContextProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
-
-use function PHPdot\Container\singleton;
 
 final class ShowCommandTest extends TestCase
 {
@@ -25,7 +26,7 @@ final class ShowCommandTest extends TestCase
         $container = (new ContainerBuilder())
             ->withContextProvider(new TestContextProvider())
             ->addDefinitions([
-                'svc.alpha' => singleton(static fn (): stdClass => new stdClass()),
+                'svc.alpha' => singleton(static fn(): stdClass => new stdClass()),
             ])
             ->build();
 

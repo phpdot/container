@@ -12,6 +12,7 @@
     "keywords": ["container", "di", "php-di", "scope", "swoole", "coroutine"],
     "require": {
         "php": ">=8.5",
+        "composer-runtime-api": "^2.2",
         "php-di/php-di": "^7.0",
         "phpdot/attribute": "^0.1",
         "phpdot/contracts": "^0.1",

@@ -1,12 +1,14 @@
 <?php
 
 declare(strict_types=1);
+
 namespace PHPdot\Container\Tests;
 
 use PHPdot\Container\Context\ArrayContext;
 use PHPdot\Container\Context\ArrayContextProvider;
 use PHPdot\Container\Context\CallbackContextProvider;
 use PHPdot\Container\Testing\TestContextProvider;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
@@ -14,7 +16,8 @@ final class ContextTest extends TestCase
 {
     // ─── ArrayContext ───
 
-    public function testArrayContextSetAndGet(): void
+    #[Test]
+    public function arrayContextSetAndGet(): void
     {
         $ctx = new ArrayContext();
         $obj = new stdClass();
@@ -25,7 +28,8 @@ final class ContextTest extends TestCase
         $this->assertSame($obj, $ctx->get('key'));
     }
 
-    public function testArrayContextGetReturnsNullForMissing(): void
+    #[Test]
+    public function arrayContextGetReturnsNullForMissing(): void
     {
         $ctx = new ArrayContext();
 
@@ -33,7 +37,8 @@ final class ContextTest extends TestCase
         $this->assertNull($ctx->get('key'));
     }
 
-    public function testArrayContextUnset(): void
+    #[Test]
+    public function arrayContextUnset(): void
     {
         $ctx = new ArrayContext();
         $ctx->set('key', new stdClass());
@@ -43,7 +48,8 @@ final class ContextTest extends TestCase
         $this->assertFalse($ctx->has('key'));
     }
 
-    public function testArrayContextReset(): void
+    #[Test]
+    public function arrayContextReset(): void
     {
         $ctx = new ArrayContext();
         $ctx->set('a', new stdClass());
@@ -57,7 +63,8 @@ final class ContextTest extends TestCase
 
     // ─── ArrayContextProvider ───
 
-    public function testArrayContextProviderReturnsSameContext(): void
+    #[Test]
+    public function arrayContextProviderReturnsSameContext(): void
     {
         $provider = new ArrayContextProvider();
 
@@ -69,7 +76,8 @@ final class ContextTest extends TestCase
 
     // ─── CallbackContextProvider ───
 
-    public function testCallbackContextProvider(): void
+    #[Test]
+    public function callbackContextProvider(): void
     {
         $ctx = new ArrayContext();
         $provider = new CallbackContextProvider(fn() => $ctx);
@@ -79,7 +87,8 @@ final class ContextTest extends TestCase
 
     // ─── TestContextProvider ───
 
-    public function testTestContextProviderNewContext(): void
+    #[Test]
+    public function contextProviderNewContext(): void
     {
         $provider = new TestContextProvider();
 
@@ -93,7 +102,8 @@ final class ContextTest extends TestCase
         $this->assertFalse($ctx2->has('key'));
     }
 
-    public function testTestContextProviderResetAll(): void
+    #[Test]
+    public function contextProviderResetAll(): void
     {
         $provider = new TestContextProvider();
 

@@ -14,6 +14,8 @@ namespace PHPdot\Container;
 use Closure;
 use DI\Container;
 use DI\FactoryInterface;
+use PHPdot\Container\Exception\ContainerException;
+use PHPdot\Container\Exception\NotFoundException;
 use PHPdot\Contracts\Container\ContextDestroyInterface;
 use PHPdot\Contracts\Container\ContextProviderInterface;
 use Psr\Container\ContainerInterface;
@@ -22,7 +24,6 @@ use ReflectionIntersectionType;
 use ReflectionNamedType;
 use ReflectionParameter;
 use ReflectionUnionType;
-use RuntimeException;
 use Throwable;
 
 final class ScopedContainer implements ContainerInterface, FactoryInterface
@@ -355,7 +356,7 @@ final class ScopedContainer implements ContainerInterface, FactoryInterface
         }
 
         if (!is_object($instance)) {
-            throw new RuntimeException("Resolution for '{$id}' must return an object.");
+            throw new ContainerException("Resolution for '{$id}' must return an object.");
         }
 
         return $instance;
@@ -382,13 +383,13 @@ final class ScopedContainer implements ContainerInterface, FactoryInterface
     private function autowire(string $class, string $id): object
     {
         if (!class_exists($class)) {
-            throw new RuntimeException("Cannot autowire '{$id}': class '{$class}' does not exist.");
+            throw new NotFoundException("Cannot autowire '{$id}': class '{$class}' does not exist.");
         }
 
         $ref = new ReflectionClass($class);
 
         if (!$ref->isInstantiable()) {
-            throw new RuntimeException("Cannot autowire '{$id}': '{$class}' is not instantiable.");
+            throw new ContainerException("Cannot autowire '{$id}': '{$class}' is not instantiable.");
         }
 
         $ctor = $ref->getConstructor();
@@ -434,7 +435,7 @@ final class ScopedContainer implements ContainerInterface, FactoryInterface
             if ($param->isDefaultValueAvailable()) {
                 return $param->getDefaultValue();
             }
-            throw new RuntimeException(
+            throw new ContainerException(
                 "Cannot autowire parameter \${$param->getName()} of {$class}: no type hint and no default value.",
             );
         }
@@ -463,7 +464,7 @@ final class ScopedContainer implements ContainerInterface, FactoryInterface
             if ($type->allowsNull()) {
                 return null;
             }
-            throw new RuntimeException(
+            throw new ContainerException(
                 "Cannot autowire parameter \${$param->getName()} of {$class}: union type with no resolvable member.",
             );
         }
@@ -472,7 +473,7 @@ final class ScopedContainer implements ContainerInterface, FactoryInterface
             if ($param->isDefaultValueAvailable()) {
                 return $param->getDefaultValue();
             }
-            throw new RuntimeException(
+            throw new ContainerException(
                 "Cannot autowire parameter \${$param->getName()} of {$class}: intersection types not supported.",
             );
         }
@@ -481,7 +482,7 @@ final class ScopedContainer implements ContainerInterface, FactoryInterface
             return $param->getDefaultValue();
         }
 
-        throw new RuntimeException(
+        throw new ContainerException(
             "Cannot autowire parameter \${$param->getName()} of {$class}: unsupported type.",
         );
     }
@@ -509,7 +510,7 @@ final class ScopedContainer implements ContainerInterface, FactoryInterface
             if ($type->allowsNull()) {
                 return null;
             }
-            throw new RuntimeException(
+            throw new ContainerException(
                 "Cannot autowire parameter \${$param->getName()} of {$class}: builtin type '{$type->getName()}' has no default.",
             );
         }

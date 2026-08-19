@@ -14,7 +14,7 @@ namespace PHPdot\Container;
 use Closure;
 use Composer\Autoload\ClassLoader;
 use PHPdot\Container\Definition\ScopedDefinition;
-use RuntimeException;
+use PHPdot\Container\Exception\ContainerException;
 
 /**
  * Mark a definition as Singleton (cached forever).
@@ -72,14 +72,14 @@ function transient(string|Closure|null $implementation = null): ScopedDefinition
  * guessing. Pass nothing for the vendor dir itself; pass a relative path to
  * get the joined absolute path.
  *
- * @throws RuntimeException If no Composer autoloader is registered.
+ * @throws ContainerException If no Composer autoloader is registered.
  */
 function vendor(string $relative = ''): string
 {
     $loaders = ClassLoader::getRegisteredLoaders();
 
     if ($loaders === []) {
-        throw new RuntimeException('No Composer autoloader registered.');
+        throw new ContainerException('No Composer autoloader registered.');
     }
 
     $vendorDir = array_key_first($loaders);

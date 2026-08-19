@@ -18,11 +18,11 @@ use DI\FactoryInterface;
 use PHPdot\Container\Context\ArrayContextProvider;
 use PHPdot\Container\Definition\DefinitionCompiler;
 use PHPdot\Container\Definition\ScopedDefinition;
+use PHPdot\Container\Exception\ContainerException;
 use PHPdot\Container\Scanner\AttributeScanner;
 use PHPdot\Container\Validation\ScopeValidator;
 use PHPdot\Contracts\Container\ContextProviderInterface;
 use Psr\Container\ContainerInterface;
-use RuntimeException;
 
 final class ContainerBuilder
 {
@@ -177,7 +177,7 @@ final class ContainerBuilder
     public function addDefinitionsFromFile(string $path): self
     {
         if (!is_file($path)) {
-            throw new RuntimeException("Definitions file not found: {$path}");
+            throw new ContainerException("Definitions file not found: {$path}");
         }
 
         /**
@@ -186,7 +186,7 @@ final class ContainerBuilder
         $definitions = require $path;
 
         if (!is_array($definitions)) {
-            throw new RuntimeException("Definitions file must return an array: {$path}");
+            throw new ContainerException("Definitions file must return an array: {$path}");
         }
 
         /**

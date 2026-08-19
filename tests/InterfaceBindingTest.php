@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 namespace PHPdot\Container\Tests;
 
 use DI\FactoryInterface;
@@ -16,6 +17,7 @@ use PHPdot\Container\Testing\TestContextProvider;
 
 use function PHPdot\Container\transient;
 
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 
@@ -30,7 +32,8 @@ final class InterfaceBindingTest extends TestCase
 
     // ─── Bug #1: Implementation binding for scoped ───
 
-    public function testScopedInterfaceToImplementation(): void
+    #[Test]
+    public function scopedInterfaceToImplementation(): void
     {
         $container = $this->build([
             BugTestInterface::class => scoped(BugTestImplementation::class),
@@ -41,7 +44,8 @@ final class InterfaceBindingTest extends TestCase
         $this->assertInstanceOf(BugTestImplementation::class, $instance);
     }
 
-    public function testTransientInterfaceToImplementation(): void
+    #[Test]
+    public function transientInterfaceToImplementation(): void
     {
         $container = $this->build([
             BugTestInterface::class => transient(BugTestImplementation::class),
@@ -54,7 +58,8 @@ final class InterfaceBindingTest extends TestCase
         $this->assertNotSame($a, $b);
     }
 
-    public function testScopedImplementationIsolatedAcrossContexts(): void
+    #[Test]
+    public function scopedImplementationIsolatedAcrossContexts(): void
     {
         $container = $this->build([
             BugTestInterface::class => scoped(BugTestImplementation::class),
@@ -71,7 +76,8 @@ final class InterfaceBindingTest extends TestCase
 
     // ─── Bug #2: FactoryInterface escape hatch ───
 
-    public function testFactoryInterfaceResolvesScoped(): void
+    #[Test]
+    public function factoryInterfaceResolvesScoped(): void
     {
         $container = $this->build([
             BugTestInterface::class => scoped(BugTestImplementation::class),
@@ -85,7 +91,8 @@ final class InterfaceBindingTest extends TestCase
         $this->assertInstanceOf(BugTestImplementation::class, $instance);
     }
 
-    public function testFactoryInterfaceReturnsScopedContainer(): void
+    #[Test]
+    public function factoryInterfaceReturnsScopedContainer(): void
     {
         $container = $this->build([]);
 
@@ -97,7 +104,8 @@ final class InterfaceBindingTest extends TestCase
 
     // ─── Bug #3: ContainerInterface resolves through ScopedContainer ───
 
-    public function testContainerInterfaceReturnsScopedContainer(): void
+    #[Test]
+    public function containerInterfaceReturnsScopedContainer(): void
     {
         $container = $this->build([]);
 
@@ -107,7 +115,8 @@ final class InterfaceBindingTest extends TestCase
         $this->assertInstanceOf(ScopedContainer::class, $resolved);
     }
 
-    public function testContainerInterfaceCanResolveScoped(): void
+    #[Test]
+    public function containerInterfaceCanResolveScoped(): void
     {
         $container = $this->build([
             BugTestInterface::class => scoped(BugTestImplementation::class),
@@ -121,7 +130,8 @@ final class InterfaceBindingTest extends TestCase
         $this->assertInstanceOf(BugTestImplementation::class, $instance);
     }
 
-    public function testInjectedContainerSeesScoped(): void
+    #[Test]
+    public function injectedContainerSeesScoped(): void
     {
         $container = $this->build([
             BugTestInterface::class => scoped(BugTestImplementation::class),

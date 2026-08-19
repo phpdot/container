@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 namespace PHPdot\Container\Tests;
 
 use PHPdot\Container\ContainerBuilder;
@@ -12,6 +13,7 @@ use PHPdot\Container\Testing\TestContextProvider;
 
 use function PHPdot\Container\transient;
 
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use stdClass;
@@ -30,25 +32,29 @@ final class PhpDiCompatibilityTest extends TestCase
 
     // ─── DI\value() ───
 
-    public function testDiValueString(): void
+    #[Test]
+    public function diValueString(): void
     {
         $c = $this->build(['name' => \DI\value('PHPdot')]);
         $this->assertSame('PHPdot', $c->get('name'));
     }
 
-    public function testDiValueInt(): void
+    #[Test]
+    public function diValueInt(): void
     {
         $c = $this->build(['port' => \DI\value(8080)]);
         $this->assertSame(8080, $c->get('port'));
     }
 
-    public function testDiValueArray(): void
+    #[Test]
+    public function diValueArray(): void
     {
         $c = $this->build(['list' => \DI\value([1, 2, 3])]);
         $this->assertSame([1, 2, 3], $c->get('list'));
     }
 
-    public function testDiValueNull(): void
+    #[Test]
+    public function diValueNull(): void
     {
         $c = $this->build(['nothing' => \DI\value(null)]);
         $this->assertNull($c->get('nothing'));
@@ -56,7 +62,8 @@ final class PhpDiCompatibilityTest extends TestCase
 
     // ─── DI\factory() ───
 
-    public function testDiFactory(): void
+    #[Test]
+    public function diFactory(): void
     {
         $c = $this->build([
             'service' => \DI\factory(function () {
@@ -70,7 +77,8 @@ final class PhpDiCompatibilityTest extends TestCase
         $this->assertSame($a, $b, 'PHP-DI factory is singleton by default');
     }
 
-    public function testDiFactoryReceivesContainer(): void
+    #[Test]
+    public function diFactoryReceivesContainer(): void
     {
         $c = $this->build([
             'dep' => \DI\value('hello'),
@@ -89,7 +97,8 @@ final class PhpDiCompatibilityTest extends TestCase
 
     // ─── DI\autowire() ───
 
-    public function testDiAutowire(): void
+    #[Test]
+    public function diAutowire(): void
     {
         $c = $this->build([
             AutowiredService::class => \DI\autowire(),
@@ -99,7 +108,8 @@ final class PhpDiCompatibilityTest extends TestCase
         $this->assertInstanceOf(AutowiredService::class, $service);
     }
 
-    public function testDiAutowireWithConstructorParameter(): void
+    #[Test]
+    public function diAutowireWithConstructorParameter(): void
     {
         $c = $this->build([
             NamedService::class => \DI\autowire()
@@ -113,7 +123,8 @@ final class PhpDiCompatibilityTest extends TestCase
 
     // ─── DI\create() ───
 
-    public function testDiCreate(): void
+    #[Test]
+    public function diCreate(): void
     {
         $c = $this->build([
             stdClass::class => \DI\create(),
@@ -124,7 +135,8 @@ final class PhpDiCompatibilityTest extends TestCase
 
     // ─── DI\get() (reference) ───
 
-    public function testDiGet(): void
+    #[Test]
+    public function diGet(): void
     {
         $c = $this->build([
             'original' => \DI\value('the-value'),
@@ -136,7 +148,8 @@ final class PhpDiCompatibilityTest extends TestCase
 
     // ─── DI\env() ───
 
-    public function testDiEnv(): void
+    #[Test]
+    public function diEnv(): void
     {
         $_ENV['TEST_CONTAINER_VAR'] = 'from-env';
 
@@ -149,7 +162,8 @@ final class PhpDiCompatibilityTest extends TestCase
         unset($_ENV['TEST_CONTAINER_VAR']);
     }
 
-    public function testDiEnvDefault(): void
+    #[Test]
+    public function diEnvDefault(): void
     {
         $c = $this->build([
             'env_val' => \DI\env('NONEXISTENT_VAR_12345', 'fallback'),
@@ -160,7 +174,8 @@ final class PhpDiCompatibilityTest extends TestCase
 
     // ─── DI\string() ───
 
-    public function testDiString(): void
+    #[Test]
+    public function diString(): void
     {
         $c = $this->build([
             'app.name' => \DI\value('PHPdot'),
@@ -172,7 +187,8 @@ final class PhpDiCompatibilityTest extends TestCase
 
     // ─── DI\decorate() ───
 
-    public function testDiDecorate(): void
+    #[Test]
+    public function diDecorate(): void
     {
         $builder = (new ContainerBuilder())
             ->withContextProvider($this->provider)
@@ -204,7 +220,8 @@ final class PhpDiCompatibilityTest extends TestCase
 
     // ─── Autowiring (implicit) ───
 
-    public function testImplicitAutowiring(): void
+    #[Test]
+    public function implicitAutowiring(): void
     {
         $c = $this->build([]);
 
@@ -213,7 +230,8 @@ final class PhpDiCompatibilityTest extends TestCase
         $this->assertInstanceOf(stdClass::class, $obj);
     }
 
-    public function testAutowiringWithDependencies(): void
+    #[Test]
+    public function autowiringWithDependencies(): void
     {
         $c = $this->build([
             SimpleDep::class => \DI\create(),
@@ -226,7 +244,8 @@ final class PhpDiCompatibilityTest extends TestCase
 
     // ─── Interface → Implementation binding ───
 
-    public function testInterfaceBinding(): void
+    #[Test]
+    public function interfaceBinding(): void
     {
         $c = $this->build([
             SimpleInterface::class => \DI\autowire(SimpleImplementation::class),
@@ -238,7 +257,8 @@ final class PhpDiCompatibilityTest extends TestCase
 
     // ─── $container->call() ───
 
-    public function testContainerCall(): void
+    #[Test]
+    public function containerCall(): void
     {
         $c = $this->build([
             'greeting' => \DI\value('Hello'),
@@ -254,7 +274,8 @@ final class PhpDiCompatibilityTest extends TestCase
 
     // ─── $container->make() ───
 
-    public function testContainerMakeAlwaysFresh(): void
+    #[Test]
+    public function containerMakeAlwaysFresh(): void
     {
         $c = $this->build([
             stdClass::class => \DI\create(),
@@ -268,7 +289,8 @@ final class PhpDiCompatibilityTest extends TestCase
 
     // ─── PSR-11 compliance ───
 
-    public function testPsr11GetThrowsOnMissing(): void
+    #[Test]
+    public function psr11GetThrowsOnMissing(): void
     {
         $c = $this->build([]);
 
@@ -276,14 +298,16 @@ final class PhpDiCompatibilityTest extends TestCase
         $c->get('nonexistent.service.12345');
     }
 
-    public function testPsr11HasReturnsFalseForMissing(): void
+    #[Test]
+    public function psr11HasReturnsFalseForMissing(): void
     {
         $c = $this->build([]);
 
         $this->assertFalse($c->has('nonexistent.service.12345'));
     }
 
-    public function testPsr11HasReturnsTrueForExisting(): void
+    #[Test]
+    public function psr11HasReturnsTrueForExisting(): void
     {
         $c = $this->build([
             'exists' => \DI\value(true),
@@ -294,7 +318,8 @@ final class PhpDiCompatibilityTest extends TestCase
 
     // ─── Scoped + PHP-DI features combined ───
 
-    public function testScopedWithDiAutowire(): void
+    #[Test]
+    public function scopedWithDiAutowire(): void
     {
         $c = $this->build([
             SimpleDep::class => singleton(),
@@ -316,7 +341,8 @@ final class PhpDiCompatibilityTest extends TestCase
         $this->assertSame($a->dep, $b->dep);
     }
 
-    public function testSingletonWithDiFactory(): void
+    #[Test]
+    public function singletonWithDiFactory(): void
     {
         $counter = 0;
         $c = $this->build([
@@ -335,7 +361,8 @@ final class PhpDiCompatibilityTest extends TestCase
         $this->assertSame(1, $counter, 'Singleton factory should only run once');
     }
 
-    public function testTransientWithDiFactory(): void
+    #[Test]
+    public function transientWithDiFactory(): void
     {
         $counter = 0;
         $c = $this->build([

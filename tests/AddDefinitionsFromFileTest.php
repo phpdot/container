@@ -1,10 +1,12 @@
 <?php
 
 declare(strict_types=1);
+
 namespace PHPdot\Container\Tests;
 
 use PHPdot\Container\ContainerBuilder;
 use PHPdot\Container\Testing\TestContextProvider;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use stdClass;
@@ -25,7 +27,8 @@ final class AddDefinitionsFromFileTest extends TestCase
         }
     }
 
-    public function testLoadsDefinitionsFromFile(): void
+    #[Test]
+    public function loadsDefinitionsFromFile(): void
     {
         file_put_contents($this->tmpFile, <<<'PHP'
             <?php
@@ -45,7 +48,8 @@ final class AddDefinitionsFromFileTest extends TestCase
         self::assertInstanceOf(stdClass::class, $instance);
     }
 
-    public function testReturnsBuilderForChaining(): void
+    #[Test]
+    public function returnsBuilderForChaining(): void
     {
         file_put_contents($this->tmpFile, '<?php return [];');
 
@@ -55,7 +59,8 @@ final class AddDefinitionsFromFileTest extends TestCase
         self::assertSame($builder, $result);
     }
 
-    public function testThrowsWhenFileMissing(): void
+    #[Test]
+    public function throwsWhenFileMissing(): void
     {
         $missing = '/nonexistent/path/' . uniqid() . '.php';
 
@@ -65,7 +70,8 @@ final class AddDefinitionsFromFileTest extends TestCase
         (new ContainerBuilder())->addDefinitionsFromFile($missing);
     }
 
-    public function testThrowsWhenFileDoesNotReturnArray(): void
+    #[Test]
+    public function throwsWhenFileDoesNotReturnArray(): void
     {
         file_put_contents($this->tmpFile, '<?php return "not an array";');
 
@@ -75,7 +81,8 @@ final class AddDefinitionsFromFileTest extends TestCase
         (new ContainerBuilder())->addDefinitionsFromFile($this->tmpFile);
     }
 
-    public function testLaterCallsOverrideEarlierEntries(): void
+    #[Test]
+    public function laterCallsOverrideEarlierEntries(): void
     {
         $first = sys_get_temp_dir() . '/phpdot_defs_first_' . uniqid() . '.php';
         $second = sys_get_temp_dir() . '/phpdot_defs_second_' . uniqid() . '.php';

@@ -11,10 +11,10 @@ declare(strict_types=1);
 
 namespace PHPdot\Container\Validation;
 
+use PHPdot\Container\Exception\ContainerException;
 use PHPdot\Container\Scope;
-use RuntimeException;
 
-final class ScopeMismatchException extends RuntimeException
+final class ScopeMismatchException extends ContainerException
 {
     /**
      * Create the exception for a service consuming a shorter-lived dependency.

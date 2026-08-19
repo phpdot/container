@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 namespace PHPdot\Container\Tests;
 
 use PHPdot\Container\Scanner\AttributeScanner;
@@ -9,6 +10,7 @@ use PHPdot\Container\Tests\Fixtures\Attribute\ScopedFixture;
 use PHPdot\Container\Tests\Fixtures\Attribute\SingletonFixture;
 use PHPdot\Container\Tests\Fixtures\Attribute\TransientFixture;
 use PHPdot\Container\Tests\Fixtures\Attribute\UntaggedFixture;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 final class AttributeTest extends TestCase
@@ -20,7 +22,8 @@ final class AttributeTest extends TestCase
         $this->scanner = new AttributeScanner();
     }
 
-    public function testScansSingletonScopedAndTransientFromDirectory(): void
+    #[Test]
+    public function scansSingletonScopedAndTransientFromDirectory(): void
     {
         $results = $this->scanner->scanDirectory(__DIR__ . '/Fixtures/Attribute');
 
@@ -29,7 +32,8 @@ final class AttributeTest extends TestCase
         $this->assertSame(Scope::TRANSIENT, $results[TransientFixture::class] ?? null);
     }
 
-    public function testIgnoresClassesWithoutLifecycleAttributes(): void
+    #[Test]
+    public function ignoresClassesWithoutLifecycleAttributes(): void
     {
         $results = $this->scanner->scanDirectory(__DIR__ . '/Fixtures/Attribute');
 
