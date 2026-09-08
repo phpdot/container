@@ -31,8 +31,8 @@ Adds lifecycle management (Singleton, Scoped, Transient) on top of [PHP-DI](http
 | PHP | `>= 8.5` |
 | `composer-runtime-api` | `^2.2` |
 | `php-di/php-di` | `^7.0` |
-| `phpdot/attribute` | `^0.2` |
-| `phpdot/contracts` | `^0.2` |
+| `phpdot/attribute` | `^0.3` |
+| `phpdot/contracts` | `^0.3` |
 | `psr/container` | `^2.0` |
 | `symfony/console` | `^8.0` |
 
@@ -266,6 +266,20 @@ Scan for attributes:
 
 ```php
 $builder->scanAttributesIn(__DIR__ . '/src');
+```
+
+A constructor parameter can pull a named definition instead of autowiring by type:
+
+```php
+use PHPdot\Container\Attribute\Inject;
+
+class Mailer
+{
+    public function __construct(
+        #[Inject('mail.transport')]
+        private readonly Transport $transport,
+    ) { }
+}
 ```
 
 ### Loading Definitions from a File

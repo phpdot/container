@@ -14,6 +14,7 @@ namespace PHPdot\Container;
 use Closure;
 use DI\Container;
 use DI\FactoryInterface;
+use PHPdot\Container\Attribute\Inject;
 use PHPdot\Container\Exception\ContainerException;
 use PHPdot\Container\Exception\NotFoundException;
 use PHPdot\Contracts\Container\ContextDestroyInterface;
@@ -415,7 +416,9 @@ final class ScopedContainer implements ContainerInterface, FactoryInterface
     /**
      * Resolve a single constructor parameter.
      *
-     * Resolution order: untyped parameters use their default or fail; a
+     * Resolution order: a #[Inject] attribute wins outright — the parameter
+     * resolves the named container entry by id and type-based autowiring is
+     * skipped; without it, untyped parameters use their default or fail; a
      * named class resolves through resolveNamedType(); a union tries each
      * named member and falls back to default/null; an intersection is not
      * autowirable (PHP-DI does not support it either) and uses its default
@@ -429,6 +432,14 @@ final class ScopedContainer implements ContainerInterface, FactoryInterface
      */
     private function resolveParameter(ReflectionParameter $param, ContainerInterface $resolver, string $class): mixed
     {
+        $injectAttributes = $param->getAttributes(Inject::class);
+
+        if ($injectAttributes !== []) {
+            $inject = $injectAttributes[0]->newInstance();
+
+            return $resolver->get($inject->name);
+        }
+
         $type = $param->getType();
 
         if ($type === null) {
