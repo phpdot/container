@@ -31,8 +31,8 @@ Adds lifecycle management (Singleton, Scoped, Transient) on top of [PHP-DI](http
 | PHP | `>= 8.5` |
 | `composer-runtime-api` | `^2.2` |
 | `php-di/php-di` | `^7.0` |
-| `phpdot/attribute` | `^0.3` |
-| `phpdot/contracts` | `^0.3` |
+| `phpdot/attribute` | `^0.4` |
+| `phpdot/contracts` | `^0.4` |
 | `psr/container` | `^2.0` |
 | `symfony/console` | `^8.0` |
 
